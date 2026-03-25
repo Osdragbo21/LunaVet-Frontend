@@ -1,13 +1,27 @@
 import React from 'react';
 import { Users, Calendar, AlertCircle, TrendingUp } from 'lucide-react';
 
-export const MetricsGrid = () => {
-  // Estos datos vendrán luego de tu Base de Datos (Mapeo de tu Diagrama ER)
+interface MetricsGridProps {
+    metrics: {
+        totalPacientesActivos: number;
+        citasHoy: number;
+        productosStockBajo: number;
+        ingresosMes: number;
+    }
+}
+
+export const MetricsGrid: React.FC<MetricsGridProps> = ({ metrics }) => {
+    
+    // Formateador de moneda para los ingresos
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+    };
+
     const stats = [
-        { title: "Pacientes Activos", value: "1,248", icon: Users, trend: "+12%", color: "text-blue-500", bg: "bg-blue-500/10" },
-        { title: "Citas Hoy", value: "24", icon: Calendar, trend: "5 pendientes", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-        { title: "Stock Bajo", value: "12", icon: AlertCircle, trend: "Revisar", color: "text-rose-500", bg: "bg-rose-500/10" },
-        { title: "Ingresos (Mes)", value: "$45k", icon: TrendingUp, trend: "+8.5%", color: "text-purple-500", bg: "bg-purple-500/10" },
+        { title: "Pacientes Activos", value: metrics.totalPacientesActivos, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+        { title: "Citas Hoy", value: metrics.citasHoy, icon: Calendar, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+        { title: "Stock Bajo", value: metrics.productosStockBajo, icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
+        { title: "Ingresos (Mes)", value: formatCurrency(metrics.ingresosMes), icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-500/10" },
     ];
 
     return (
@@ -18,9 +32,6 @@ export const MetricsGrid = () => {
                 <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
                 <stat.icon size={24} />
                 </div>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${stat.bg} ${stat.color}`}>
-                {stat.trend}
-                </span>
             </div>
             <div>
                 <h3 className="text-3xl font-bold text-[#0F172A] dark:text-white mb-1">{stat.value}</h3>
