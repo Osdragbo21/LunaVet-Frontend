@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Tag, AlertTriangle, Loader2 } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
@@ -12,23 +12,22 @@ import { gql } from '@apollo/client/core';
 // 2. Definición de Consultas y Mutaciones
 const GET_CLIENTES_DROPDOWN = gql`
     query GetClientesDropdown {
-        clientes {
-        id_cliente
-        nombre_completo
-        }
+            clientes {
+            id_cliente
+            nombre_completo
+            }
     }
 `;
 
-// Hemos regresado la petición del cliente ya que el backend solucionó el JOIN
 const CREATE_PACIENTE = gql`
     mutation CreatePaciente($input: CreatePacienteInput!) {
-        createPaciente(createPacienteInput: $input) {
-        id_paciente
-        nombre
-        especie
-        cliente {
-            nombre_completo
-        }
+            createPaciente(createPacienteInput: $input) {
+            id_paciente
+            nombre
+            especie
+            cliente {
+                nombre_completo
+            }
         }
     }
 `;
@@ -46,10 +45,11 @@ interface GetClientesResponse {
 interface NuevoPacienteModalProps {
     isOpen: boolean;
     onClose: () => void;
+    defaultClienteId?: number; // NUEVO: Permite pre-seleccionar un cliente
 }
 
-export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, onClose }) => {
-  // 4. Estados del formulario
+export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, onClose, defaultClienteId }) => {
+    // 4. Estados del formulario
     const [formData, setFormData] = useState({
         cliente_id: '',
         nombre: '',
@@ -61,14 +61,27 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
         alergias: ''
     });
 
+    // NUEVO: Efecto para pre-llenar el cliente si viene desde la tabla de Clientes
+    useEffect(() => {
+        if (isOpen && defaultClienteId) {
+        setFormData(prev => ({ ...prev, cliente_id: defaultClienteId.toString() }));
+        } else if (!isOpen) {
+        // Limpiar al cerrar
+        setFormData({
+            cliente_id: '', nombre: '', fecha_nacimiento: '', especie: 'Perro', 
+            raza: '', genero: 'Macho', color: '', alergias: ''
+        });
+        }
+    }, [isOpen, defaultClienteId]);
+
     // 5. Hooks de Apollo
     const { data: clientesData, loading: loadingClientes } = useQuery<GetClientesResponse>(GET_CLIENTES_DROPDOWN, {
         skip: !isOpen // Solo cargar clientes si el modal está abierto
     });
 
     const [createPaciente, { loading: saving, error: saveError }] = useMutation(CREATE_PACIENTE, {
-        // Esto recarga automáticamente la tabla de atrás al guardar exitosamente
-        refetchQueries: ['GetPacientes'] 
+        // NUEVO: Recargamos AMBAS tablas para que el globito de la mascota aparezca de inmediato en la vista de clientes
+        refetchQueries: ['GetPacientes', 'GetClientesDirectorio'] 
     });
 
     // 6. Manejadores de eventos
@@ -86,20 +99,13 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
             input: {
                 ...formData,
                 cliente_id: parseInt(formData.cliente_id),
-                // Convertir fecha a ISO 8601 si existe
                 fecha_nacimiento: formData.fecha_nacimiento ? new Date(formData.fecha_nacimiento).toISOString() : null,
                 alergias: formData.alergias.trim() !== '' ? formData.alergias : null
             }
             }
         });
         
-        // Limpiar formulario y cerrar modal
-        setFormData({
-            cliente_id: '', nombre: '', fecha_nacimiento: '', especie: 'Perro', 
-            raza: '', genero: 'Macho', color: '', alergias: ''
-        });
         onClose();
-        
         } catch (err) {
         console.error("Error al guardar el paciente:", err);
         }
@@ -141,7 +147,8 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
                     value={formData.cliente_id}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-[#FFFFFF] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all appearance-none cursor-pointer"
+                    disabled={!!defaultClienteId} // Si viene preseleccionado, bloqueamos el select
+                    className="w-full px-4 py-3 bg-[#FFFFFF] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all appearance-none cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                     <option value="">Selecciona un cliente registrado...</option>
                     {clientesData?.clientes.map(cliente => (
@@ -152,43 +159,23 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
                     </select>
                     {loadingClientes && <Loader2 className="absolute right-4 top-3.5 animate-spin text-[#3B82F6]" size={18} />}
                 </div>
-                <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-2">Si es un cliente nuevo, primero debes registrarlo en el directorio de Clientes.</p>
                 </div>
 
                 {/* Grid de Datos del Paciente */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <Label>Nombre del Paciente</Label>
-                    <Input 
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    icon={Tag} 
-                    placeholder="Ej. Firulais" 
-                    required 
-                    />
+                    <Input name="nombre" value={formData.nombre} onChange={handleChange} icon={Tag} placeholder="Ej. Firulais" required />
                 </div>
                 
                 <div className="space-y-2">
                     <Label>Fecha de Nacimiento</Label>
-                    <input 
-                    type="date" 
-                    name="fecha_nacimiento"
-                    value={formData.fecha_nacimiento}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 pl-11 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all" 
-                    />
+                    <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange} required className="w-full px-4 py-3 pl-11 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all" />
                 </div>
 
                 <div className="space-y-2">
                     <Label>Especie</Label>
-                    <select 
-                    name="especie"
-                    value={formData.especie}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all appearance-none"
-                    >
+                    <select name="especie" value={formData.especie} onChange={handleChange} className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all appearance-none">
                     <option value="Perro">Perro</option>
                     <option value="Gato">Gato</option>
                     <option value="Ave">Ave</option>
@@ -200,23 +187,12 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
 
                 <div className="space-y-2">
                     <Label>Raza</Label>
-                    <Input 
-                    name="raza"
-                    value={formData.raza}
-                    onChange={handleChange}
-                    placeholder="Ej. Labrador, Siamés..." 
-                    required 
-                    />
+                    <Input name="raza" value={formData.raza} onChange={handleChange} placeholder="Ej. Labrador, Siamés..." required />
                 </div>
 
                 <div className="space-y-2">
                     <Label>Género</Label>
-                    <select 
-                    name="genero"
-                    value={formData.genero}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all appearance-none"
-                    >
+                    <select name="genero" value={formData.genero} onChange={handleChange} className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all appearance-none">
                     <option value="Macho">Macho</option>
                     <option value="Hembra">Hembra</option>
                     </select>
@@ -224,13 +200,7 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
 
                 <div className="space-y-2">
                     <Label>Color / Rasgos</Label>
-                    <Input 
-                    name="color"
-                    value={formData.color}
-                    onChange={handleChange}
-                    placeholder="Ej. Blanco con manchas negras" 
-                    required 
-                    />
+                    <Input name="color" value={formData.color} onChange={handleChange} placeholder="Ej. Blanco con manchas negras" required />
                 </div>
                 </div>
 
@@ -239,14 +209,7 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
                 <Label className="flex items-center gap-2 text-rose-500">
                     <AlertTriangle size={16} /> Alergias Conocidas (Campo Médico Crítico)
                 </Label>
-                <Textarea 
-                    name="alergias"
-                    value={formData.alergias}
-                    onChange={handleChange}
-                    rows={3} 
-                    placeholder="Describe si el paciente tiene alergias a la penicilina, alimentos u otros. Deja vacío si no presenta alergias."
-                    className="border-rose-200 dark:border-rose-900/50 focus:ring-rose-500/50 focus:border-rose-500"
-                />
+                <Textarea name="alergias" value={formData.alergias} onChange={handleChange} rows={3} placeholder="Describe si el paciente tiene alergias..." className="border-rose-200 dark:border-rose-900/50 focus:ring-rose-500/50 focus:border-rose-500" />
                 </div>
 
             </form>
@@ -258,13 +221,7 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
                 Cancelar
             </Button>
             <Button type="submit" form="pacienteForm" disabled={saving} variant="primary" className="!w-full sm:!w-auto flex items-center justify-center gap-2">
-                {saving ? (
-                <>
-                    <Loader2 size={18} className="animate-spin" /> Guardando...
-                </>
-                ) : (
-                "Guardar Paciente"
-                )}
+                {saving ? <><Loader2 size={18} className="animate-spin" /> Guardando...</> : "Guardar Paciente"}
             </Button>
             </div>
 
