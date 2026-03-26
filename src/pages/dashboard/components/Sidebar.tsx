@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-    X, LayoutDashboard, Users, Calendar, 
-    ShoppingBag, CreditCard, Settings, LogOut, ChevronRight 
+    X, LayoutDashboard, ShoppingCart, Stethoscope, Shield, Contact,
+    PlusCircle, Package, History, BarChart2, Calendar, Scissors, Award,
+    Users, PawPrint, Briefcase, UserCircle, Boxes, Truck, LogOut, ChevronRight, ChevronDown 
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -14,32 +15,71 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ 
     isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab 
     }) => {
+    // Estado para controlar qué submenús están abiertos (Inicia vacío para que todos estén cerrados por defecto)
+    const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+    const toggleMenu = (menuId: string) => {
+        // Al no usar "...prev", garantizamos que al abrir uno nuevo, los demás se cierren automáticamente.
+        setOpenMenus(prev => ({
+        [menuId]: !prev[menuId]
+        }));
+    };
     
+    // Jerarquía basada en tu esquema y la base de datos
     const menuItems = [
-        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { id: 'pacientes', icon: Users, label: 'Pacientes' },
-        { id: 'agenda', icon: Calendar, label: 'Agenda Médica' },
-        { id: 'inventario', icon: ShoppingBag, label: 'Inventario' },
-        { id: 'facturacion', icon: CreditCard, label: 'Facturación' },
-        { id: 'ajustes', icon: Settings, label: 'Ajustes' },
+        { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard Principal' },
+        {
+        id: 'ventas-group', icon: ShoppingCart, label: 'Ventas',
+        subItems: [
+            { id: 'nueva-venta', label: 'Nueva Venta', icon: PlusCircle },
+            { id: 'pedidos', label: 'Pedidos (Estatus)', icon: Package },
+            { id: 'historial-ventas', label: 'Historial de Ventas', icon: History },
+            { id: 'metricas-ventas', label: 'Estadísticas de Ventas', icon: BarChart2 },
+        ]
+        },
+        {
+        id: 'servicios-group', icon: Stethoscope, label: 'Servicios',
+        subItems: [
+            { id: 'agenda', label: 'Agenda', icon: Calendar },
+            { id: 'consultas', label: 'Consulta', icon: Stethoscope },
+            { id: 'especialidades', label: 'Especialidad', icon: Award },
+            { id: 'estetica', label: 'Estética', icon: Scissors },
+        ]
+        },
+        {
+        id: 'directorios-group', icon: Contact, label: 'Directorios',
+        subItems: [
+            { id: 'pacientes', label: 'Pacientes', icon: PawPrint },
+            { id: 'clientes', label: 'Clientes (Dueños)', icon: Users },
+            { id: 'empleados', label: 'Trabajadores', icon: Briefcase },
+            { id: 'usuarios', label: 'Usuarios', icon: UserCircle },
+        ]
+        },
+        {
+        id: 'admin-group', icon: Shield, label: 'Administración',
+        subItems: [
+            { id: 'inventario', label: 'Inventario', icon: Boxes },
+            { id: 'proveedores', label: 'Proveedores', icon: Truck },
+        ]
+        }
     ];
 
     return (
         <>
         <aside className={`
-            fixed inset-y-0 left-0 z-50 w-64 bg-[#FFFFFF] dark:bg-[#1E293B] border-r border-black/5 dark:border-white/5 transform transition-transform duration-300 ease-in-out flex flex-col
+            fixed inset-y-0 left-0 z-50 w-72 bg-[#FFFFFF] dark:bg-[#1E293B] border-r border-black/5 dark:border-white/5 transform transition-transform duration-300 ease-in-out flex flex-col
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:block
         `}>
             {/* Logo */}
-            <div className="h-20 flex items-center justify-between px-6 border-b border-black/5 dark:border-white/5">
+            <div className="h-20 flex items-center justify-between px-6 border-b border-black/5 dark:border-white/5 shrink-0">
             <div className="flex items-center gap-3">
                 <img 
                 src="/Logo_LunaVet.png" 
                 alt="LunaVet Logo" 
-                className="w-8 h-8 object-contain"
-                onError={(e: any) => { e.target.onerror = null; e.target.src = "[https://cdn-icons-png.flaticon.com/512/1864/1864509.png](https://cdn-icons-png.flaticon.com/512/1864/1864509.png)"; }}
+                className="w-9 h-9 object-contain"
+                onError={(e: any) => { e.target.onerror = null; e.target.src = "https://cdn-icons-png.flaticon.com/512/1864/1864509.png"; }}
                 />
-                <span className="font-bold text-xl tracking-tight text-[#0F172A] dark:text-white">LunaVet</span>
+                <span className="font-bold text-2xl tracking-tight text-[#0F172A] dark:text-white">LunaVet</span>
             </div>
             <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 text-[#64748B] dark:text-[#94A3B8]">
                 <X size={20} />
@@ -47,29 +87,78 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {/* Navegación */}
-            <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-            <p className="px-3 text-xs font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-4">Menú Principal</p>
-            {menuItems.map((item) => (
-                <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] font-medium transition-all duration-200
-                    ${activeTab === item.id 
-                    ? 'bg-[#3B82F6]/10 text-[#3B82F6] dark:bg-[#3B82F6]/20' 
-                    : 'text-[#64748B] dark:text-[#94A3B8] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
-                    }
-                `}
-                >
-                <item.icon size={20} className={activeTab === item.id ? 'text-[#3B82F6]' : ''} />
-                {item.label}
-                {activeTab === item.id && <ChevronRight size={16} className="ml-auto" />}
-                </button>
-            ))}
+            <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
+            <p className="px-4 text-[11px] font-extrabold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-widest mb-4">Menú Principal</p>
+            
+            {menuItems.map((item) => {
+                // Si es un botón simple (como Dashboard)
+                if (!item.subItems) {
+                return (
+                    <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 mb-1
+                        ${activeTab === item.id 
+                        ? 'bg-[#3B82F6]/10 text-[#3B82F6] dark:bg-[#3B82F6]/20' 
+                        : 'text-[#64748B] dark:text-[#94A3B8] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+                        }
+                    `}
+                    >
+                    <item.icon size={20} className={activeTab === item.id ? 'text-[#3B82F6]' : ''} />
+                    {item.label}
+                    </button>
+                );
+                }
+
+                // Si es un grupo con submenús (Acordeón)
+                const isOpen = openMenus[item.id];
+                const isChildActive = item.subItems.some(sub => sub.id === activeTab);
+
+                return (
+                <div key={item.id} className="mb-2">
+                    {/* Botón Padre */}
+                    <button
+                    onClick={() => toggleMenu(item.id)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-[12px] font-medium transition-all duration-200
+                        ${isChildActive && !isOpen ? 'text-[#3B82F6]' : 'text-[#0F172A] dark:text-[#F8FAFC]'}
+                        hover:bg-black/5 dark:hover:bg-white/5
+                    `}
+                    >
+                    <div className="flex items-center gap-3">
+                        <item.icon size={20} className={isChildActive && !isOpen ? 'text-[#3B82F6]' : 'text-[#64748B] dark:text-[#94A3B8]'} />
+                        {item.label}
+                    </div>
+                    {isOpen ? <ChevronDown size={16} className="text-[#64748B]" /> : <ChevronRight size={16} className="text-[#64748B]" />}
+                    </button>
+
+                    {/* Sub-elementos desplegables */}
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
+                    <div className="flex flex-col gap-1 pl-11 pr-2 border-l-2 border-black/5 dark:border-white/5 ml-6">
+                        {item.subItems.map((subItem) => (
+                        <button
+                            key={subItem.id}
+                            onClick={() => setActiveTab(subItem.id)}
+                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-sm font-medium transition-all duration-200
+                            ${activeTab === subItem.id 
+                                ? 'bg-[#3B82F6]/10 text-[#3B82F6] dark:bg-[#3B82F6]/20' 
+                                : 'text-[#64748B] dark:text-[#94A3B8] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+                            }
+                            `}
+                        >
+                            <subItem.icon size={16} className={activeTab === subItem.id ? 'text-[#3B82F6]' : 'opacity-70'} />
+                            {subItem.label}
+                        </button>
+                        ))}
+                    </div>
+                    </div>
+                </div>
+                );
+            })}
             </div>
 
             {/* Usuario / Bottom */}
-            <div className="p-4 border-t border-black/5 dark:border-white/5">
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
+            <div className="p-5 border-t border-black/5 dark:border-white/5 shrink-0">
+            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors">
                 <LogOut size={20} />
                 Cerrar Sesión
             </button>

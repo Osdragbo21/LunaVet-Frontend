@@ -10,8 +10,9 @@ import { WelcomeBanner } from './sections/WelcomeBanner';
 import { MetricsGrid } from './sections/MetricsGrid';
 import { ChartsSection } from './sections/ChartsSection';
 
-// 1. Importamos tu nueva vista de pacientes
+// Importamos nuestras vistas del directorio
 import { PacientesView } from './sections/PacientesView';
+import { ClientesView } from './sections/ClientesView'; // <- NUEVA VISTA
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
@@ -88,6 +89,11 @@ export const DashboardPage = () => {
                 {/* VISTA 2: DIRECTORIO DE PACIENTES */}
                 {activeTab === 'pacientes' && (
                     <PacientesView />
+                )}
+
+                {/* VISTA 3: DIRECTORIO DE CLIENTES */}
+                {activeTab === 'clientes' && (
+                    <ClientesView />
                 )}
                 
                 </div>
