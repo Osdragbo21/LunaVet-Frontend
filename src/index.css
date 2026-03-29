@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -16,3 +25,4 @@ body {
   -webkit-text-fill-color: #F8FAFC !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+

@@ -15,6 +15,7 @@ import { PacientesView } from './sections/PacientesView';
 import { ClientesView } from './sections/ClientesView'; // <- NUEVA VISTA
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
+import { AgendaView } from './sections/AgendaView';
 
 // ==========================================
 // INTERFACES PARA QUITAR LOS ERRORES DE TYPESCRIPT
@@ -96,6 +97,11 @@ export const DashboardPage = () => {
                     <ClientesView />
                 )}
                 
+                {/* VISTA 4: AGENDA MÉDICA */}
+                {activeTab === 'agenda' && (
+                    <AgendaView />
+                )}
+
                 </div>
             </div>
             </main>
