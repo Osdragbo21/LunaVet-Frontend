@@ -17,6 +17,7 @@ import { gql } from '@apollo/client/core';
 // Importamos modales
 import { NuevoClienteModal } from '../components/NuevoClienteModal';
 import { NuevoPacienteModal } from '../components/NuevoPacienteModal';
+import { ExpedienteModal } from '../components/ExpedienteModal'; // <-- NUEVA IMPORTACIÓN
 
 // ==========================================
 // 1. QUERIES Y MUTACIONES
@@ -151,13 +152,15 @@ const ModalFichaMascota = ({
   mascota, 
   onClose, 
   onEdit, 
-  onDelete 
+  onDelete,
+  onAbrirExpediente // <-- NUEVA PROP
 }: { 
   isOpen: boolean; 
   mascota: PacienteDetalle | null; 
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onAbrirExpediente: (id: number) => void;
 }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
@@ -236,10 +239,14 @@ const ModalFichaMascota = ({
         </div>
 
         <div className="px-6 py-4 bg-[#F8FAFC] dark:bg-[#0F172A] rounded-b-[24px] flex justify-center">
+          {/* BOTÓN ACTUALIZADO PARA ABRIR EXPEDIENTE */}
           <Button 
             variant="outline" 
             className="w-full text-sm !py-2.5"
-            onClick={() => console.log("Redirigiendo a expediente clínico...")}
+            onClick={() => {
+              onAbrirExpediente(mascota.id_paciente);
+              onClose();
+            }}
           >
             Abrir Expediente Completo
           </Button>
@@ -654,6 +661,7 @@ export const ClientesView = () => {
   
   // Estados para Modales
   const [isModalNewOpen, setIsModalNewOpen] = useState(false);
+  const [pacienteParaExpediente, setPacienteParaExpediente] = useState<number | null>(null); // <-- NUEVO ESTADO PARA EXPEDIENTE
   const [mascotaViendoFicha, setMascotaViendoFicha] = useState<PacienteDetalle | null>(null);
   const [mascotaAEditar, setMascotaAEditar] = useState<PacienteDetalle | null>(null);
   const [mascotaAEliminar, setMascotaAEliminar] = useState<PacienteDetalle | null>(null);
@@ -932,10 +940,12 @@ export const ClientesView = () => {
         defaultClienteId={clienteParaNuevaMascota?.id_cliente} 
       />
 
+      {/* NUEVA PROP onAbrirExpediente PASADA AQUÍ */}
       <ModalFichaMascota 
         isOpen={!!mascotaViendoFicha} 
         mascota={mascotaViendoFicha} 
         onClose={() => setMascotaViendoFicha(null)}
+        onAbrirExpediente={(id) => setPacienteParaExpediente(id)}
         onEdit={() => {
           setMascotaAEditar(mascotaViendoFicha);
           setMascotaViendoFicha(null);
@@ -956,6 +966,13 @@ export const ClientesView = () => {
         isOpen={!!mascotaAEliminar}
         mascota={mascotaAEliminar}
         onClose={() => setMascotaAEliminar(null)}
+      />
+
+      {/* NUEVO MODAL: EXPEDIENTE CLÍNICO */}
+      <ExpedienteModal 
+        isOpen={!!pacienteParaExpediente} 
+        pacienteId={pacienteParaExpediente} 
+        onClose={() => setPacienteParaExpediente(null)} 
       />
 
     </div>

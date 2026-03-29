@@ -8,8 +8,9 @@ import { Textarea } from '../../../components/ui/Textarea';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { gql } from '@apollo/client/core';
 
-// Importamos el Modal de Nuevo Paciente
+// Importamos los Modales
 import { NuevoPacienteModal } from '../components/NuevoPacienteModal';
+import { ExpedienteModal } from '../components/ExpedienteModal'; // <-- NUEVA IMPORTACIÓN
 
 // ==========================================
 // 1. DEFINICIÓN DE QUERIES Y MUTACIONES
@@ -175,8 +176,9 @@ const ModalEditar = ({ isOpen, paciente, onClose }: { isOpen: boolean, paciente:
     refetchQueries: ['GetPacientes']
   });
 
-  const handleChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -321,12 +323,13 @@ const ModalEditar = ({ isOpen, paciente, onClose }: { isOpen: boolean, paciente:
 export const PacientesView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  // NUEVO: ESTADOS PARA EL FILTRO
+  // ESTADOS PARA EL FILTRO
   const [filtroActivo, setFiltroActivo] = useState('todos');
   const [menuFiltrosAbierto, setMenuFiltrosAbierto] = useState(false);
   
   // Estados para Modales
   const [isModalNewOpen, setIsModalNewOpen] = useState(false);
+  const [pacienteViendoExpediente, setPacienteViendoExpediente] = useState<number | null>(null); // <-- NUEVO ESTADO
   const [pacienteAEditar, setPacienteAEditar] = useState<Paciente | null>(null);
   const [pacienteAEliminar, setPacienteAEliminar] = useState<Paciente | null>(null);
   const [menuAbierto, setMenuAbierto] = useState<number | null>(null);
@@ -363,10 +366,9 @@ export const PacientesView = () => {
       paciente.especie.toLowerCase().includes(busqueda) ||
       paciente.cliente.nombre_completo.toLowerCase().includes(busqueda);
 
-    // 2. Filtro interactivo (Con corrección de tipo boolean)
+    // 2. Filtro interactivo
     let coincideFiltro = true;
     const especie = paciente.especie.toLowerCase();
-    // Forzamos a que el resultado sea puramente booleano (true o false)
     const tieneAlergias = !!paciente.alergias && paciente.alergias.trim().toLowerCase() !== 'ninguna';
 
     if (filtroActivo === 'perros') coincideFiltro = especie === 'perro';
@@ -503,7 +505,12 @@ export const PacientesView = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right relative">
-                          <button className="text-[#3B82F6] font-medium text-sm hover:underline mr-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          
+                          {/* NUEVO: Evento onClick para abrir el Expediente */}
+                          <button 
+                            onClick={() => setPacienteViendoExpediente(paciente.id_paciente)}
+                            className="text-[#3B82F6] font-medium text-sm hover:underline mr-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
                             Ver Expediente
                           </button>
                           
@@ -565,6 +572,10 @@ export const PacientesView = () => {
 
       {/* Renderizado Condicional de Modales */}
       <NuevoPacienteModal isOpen={isModalNewOpen} onClose={() => setIsModalNewOpen(false)} />
+      
+      {/* NUEVO: Modal del Expediente Clínico */}
+      <ExpedienteModal isOpen={!!pacienteViendoExpediente} pacienteId={pacienteViendoExpediente} onClose={() => setPacienteViendoExpediente(null)} />
+      
       <ModalEditar isOpen={!!pacienteAEditar} paciente={pacienteAEditar} onClose={() => setPacienteAEditar(null)} />
       <ModalEliminar isOpen={!!pacienteAEliminar} paciente={pacienteAEliminar} onClose={() => setPacienteAEliminar(null)} />
       
