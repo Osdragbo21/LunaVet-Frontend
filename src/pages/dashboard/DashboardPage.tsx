@@ -1,5 +1,4 @@
 import React from 'react';
-// IMPORTACIÓN DIRECTA DE REACT (Bypass para Vite/TS)
 import { useQuery } from '@apollo/client/react';
 import { Loader2 } from 'lucide-react';
 
@@ -10,15 +9,16 @@ import { WelcomeBanner } from './sections/WelcomeBanner';
 import { MetricsGrid } from './sections/MetricsGrid';
 import { ChartsSection } from './sections/ChartsSection';
 
-// Importamos nuestras vistas del directorio
+// Importamos TODAS nuestras vistas del directorio
 import { PacientesView } from './sections/PacientesView';
-import { ClientesView } from './sections/ClientesView'; // <- NUEVA VISTA
+import { ClientesView } from './sections/ClientesView';
+import { AgendaView } from './sections/AgendaView';
+import { UsuariosView } from './sections/UsuariosView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
-import { AgendaView } from './sections/AgendaView';
 
 // ==========================================
-// INTERFACES PARA QUITAR LOS ERRORES DE TYPESCRIPT
+// INTERFACES PARA TYPESCRIPT
 // ==========================================
 interface ChartItem {
     label: string;
@@ -100,6 +100,11 @@ export const DashboardPage = () => {
                 {/* VISTA 4: AGENDA MÉDICA */}
                 {activeTab === 'agenda' && (
                     <AgendaView />
+                )}
+
+                {/* VISTA 5: CONTROL DE USUARIOS */}
+                {activeTab === 'usuarios' && (
+                    <UsuariosView />
                 )}
 
                 </div>

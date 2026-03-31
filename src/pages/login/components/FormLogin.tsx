@@ -5,15 +5,13 @@ import { User, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 
-// Nota: Asumiendo que Label también lo moviste a ui/. Si no, puedes usar una etiqueta <label> nativa.
-// import { Label } from '../../../components/ui/Label';
-
 export const FormLogin = ({ loginData }: { loginData: any }) => {
     const {
         username, setUsername,
         password, setPassword,
         showPassword, togglePassword,
-        isLoading, handleLogin
+        isLoading, handleLogin,
+        errorMsg // Variable de error conectada
     } = loginData;
 
     return (
@@ -30,8 +28,18 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
             <div className="absolute -inset-3 rounded-[20px] blur-2xl bg-[#3B82F6]/25 dark:bg-[#3B82F6]/40 animate-pulse"></div>
             
             <div className="relative bg-[#FFFFFF] dark:bg-[#1E293B] p-8 rounded-[12px] border border-black/10 dark:border-white/5 shadow-sm transition-colors duration-300 w-full">
+                
+                {/* Nota: El botón de cambio de tema (Sol/Luna) NO va aquí. Ese botón vive en LoginPage.tsx */}
+                
                 <form onSubmit={handleLogin} className="space-y-6">
                 
+                {/* Alerta de Error de Autenticación */}
+                {errorMsg && (
+                    <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-[10px] text-sm font-bold text-center">
+                        {errorMsg}
+                    </div>
+                )}
+
                 <div className="space-y-2">
                     <label htmlFor="username" className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC] block text-left">Usuario</label>
                     <div className="relative">
@@ -99,6 +107,17 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                         </>
                     )}
                 </Button>
+
+                {/* Enlace para crear cuenta */}
+                <div className="pt-2 text-center text-sm text-[#64748B] dark:text-[#94A3B8]">
+                    ¿No tienes cuenta?{' '}
+                    <a 
+                        href="/registro" 
+                        className="font-bold text-[#3B82F6] hover:text-[#2563EB] hover:underline transition-colors"
+                    >
+                        Crear cuenta
+                    </a>
+                </div>
 
                 </form>
             </div>
