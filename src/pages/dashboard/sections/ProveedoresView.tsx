@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Plus, Truck, Edit2, AlertTriangle, Loader2, X, 
-  MoreVertical, Trash2, Building, Phone, Mail, MapPin, User 
+  MoreVertical, Trash2, Building, Phone, Mail, MapPin, User, Filter 
 } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
@@ -72,11 +72,11 @@ const ModalEditarProveedor = ({ isOpen, proveedor, onClose }: { isOpen: boolean,
   useEffect(() => {
     if (proveedor) {
       setFormData({
-        nombre_empresa: proveedor.nombre_empresa,
-        contacto_nombre: proveedor.contacto_nombre,
-        telefono: proveedor.telefono,
-        email: proveedor.email,
-        direccion: proveedor.direccion
+        nombre_empresa: proveedor.nombre_empresa || '',
+        contacto_nombre: proveedor.contacto_nombre || '',
+        telefono: proveedor.telefono || '',
+        email: proveedor.email || '',
+        direccion: proveedor.direccion || ''
       });
     }
   }, [proveedor]);
@@ -174,7 +174,6 @@ const ModalEliminarProveedor = ({ isOpen, proveedor, onClose }: { isOpen: boolea
       onClose();
     } catch (err) {
       console.error(err);
-      // No cerramos el modal si hay error, para que el usuario pueda leerlo.
     }
   };
 
@@ -191,7 +190,6 @@ const ModalEliminarProveedor = ({ isOpen, proveedor, onClose }: { isOpen: boolea
           {proveedor.nombre_empresa}
         </p>
         
-        {/* AQUÍ SE MUESTRA EL MENSAJE DE SQL QUE NOS MANDA EL BACKEND */}
         {error ? (
           <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 p-3 rounded-lg text-sm font-medium mb-6 text-left">
             <span className="font-bold block mb-1">Operación Denegada:</span>
@@ -225,6 +223,10 @@ export const ProveedoresView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [menuAbierto, setMenuAbierto] = useState<number | null>(null);
   
+  // ESTADOS DEL FILTRO
+  const [filtroActivo, setFiltroActivo] = useState('todos');
+  const [menuFiltrosAbierto, setMenuFiltrosAbierto] = useState(false);
+  
   const [isModalNewOpen, setIsModalNewOpen] = useState(false);
   const [proveedorAEditar, setProveedorAEditar] = useState<Proveedor | null>(null);
   const [proveedorAEliminar, setProveedorAEliminar] = useState<Proveedor | null>(null);
@@ -237,12 +239,19 @@ export const ProveedoresView = () => {
     return colors[nombre.charCodeAt(0) % colors.length];
   };
 
-  const proveedoresFiltrados = data?.proveedores.filter((prov) => {
+  // Lógica de Filtrado y Ordenamiento
+  let proveedoresFiltrados = data?.proveedores.filter((prov) => {
     const busqueda = searchTerm.toLowerCase();
     return prov.nombre_empresa.toLowerCase().includes(busqueda) || 
            prov.contacto_nombre.toLowerCase().includes(busqueda) ||
            prov.telefono.includes(busqueda);
   }) || [];
+
+  if (filtroActivo === 'az') {
+    proveedoresFiltrados = [...proveedoresFiltrados].sort((a, b) => a.nombre_empresa.localeCompare(b.nombre_empresa));
+  } else if (filtroActivo === 'za') {
+    proveedoresFiltrados = [...proveedoresFiltrados].sort((a, b) => b.nombre_empresa.localeCompare(a.nombre_empresa));
+  }
 
   return (
     <div className="bg-[#F8FAFC] dark:bg-[#0F172A] flex flex-col gap-6 relative">
@@ -260,16 +269,44 @@ export const ProveedoresView = () => {
         </Button>
       </div>
 
-      {/* Buscador */}
-      <div className="bg-[#FFFFFF] dark:bg-[#1E293B] p-4 rounded-[16px] border border-black/5 dark:border-white/5 shadow-sm">
-        <Input 
-          icon={Search} 
-          type="text" 
-          placeholder="Buscar por empresa, contacto o teléfono..." 
-          value={searchTerm} 
-          onChange={(e) => setSearchTerm(e.target.value)} 
-          className="w-full bg-[#F8FAFC] dark:bg-[#0F172A]" 
-        />
+      {/* Buscador y Filtros */}
+      <div className="bg-[#FFFFFF] dark:bg-[#1E293B] p-4 rounded-[16px] border border-black/5 dark:border-white/5 shadow-sm flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <Input 
+            icon={Search} 
+            type="text" 
+            placeholder="Buscar por empresa, contacto o teléfono..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            className="w-full bg-[#F8FAFC] dark:bg-[#0F172A]" 
+          />
+        </div>
+        
+        {/* Menú de Filtros Funcional */}
+        <div className="relative">
+          <Button 
+            variant="outline" 
+            className="!px-4 !py-2.5 text-[#64748B] dark:text-[#94A3B8] relative w-full sm:w-auto"
+            onClick={() => setMenuFiltrosAbierto(!menuFiltrosAbierto)}
+          >
+            <Filter size={18} /> Filtros
+            {filtroActivo !== 'todos' && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#3B82F6] border border-white dark:border-[#1E293B]"></span>
+            )}
+          </Button>
+          
+          {menuFiltrosAbierto && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setMenuFiltrosAbierto(false)}></div>
+              <div className="absolute right-0 top-14 w-48 bg-[#FFFFFF] dark:bg-[#1E293B] rounded-[12px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-black/5 dark:border-white/10 py-2 z-20 animate-in fade-in zoom-in-95 duration-100">
+                <button onClick={() => { setFiltroActivo('todos'); setMenuFiltrosAbierto(false); }} className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${filtroActivo === 'todos' ? 'text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10' : 'text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 dark:hover:bg-white/5'}`}>Predeterminado</button>
+                <div className="h-px bg-black/5 dark:bg-white/5 my-1 w-full"></div>
+                <button onClick={() => { setFiltroActivo('az'); setMenuFiltrosAbierto(false); }} className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${filtroActivo === 'az' ? 'text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10' : 'text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 dark:hover:bg-white/5'}`}>Orden A-Z</button>
+                <button onClick={() => { setFiltroActivo('za'); setMenuFiltrosAbierto(false); }} className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${filtroActivo === 'za' ? 'text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10' : 'text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 dark:hover:bg-white/5'}`}>Orden Z-A</button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {loading && <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-[#3B82F6]" size={40} /></div>}
