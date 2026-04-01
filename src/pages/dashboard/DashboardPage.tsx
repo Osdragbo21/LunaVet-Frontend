@@ -16,6 +16,7 @@ import { AgendaView } from './sections/AgendaView';
 import { UsuariosView } from './sections/UsuariosView';
 import { EmpleadosView } from './sections/EmpleadosView';
 import { InventarioView } from './sections/InventarioView';
+import { ProveedoresView } from './sections/ProveedoresView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
@@ -116,6 +117,10 @@ export const DashboardPage = () => {
 
                 {activeTab === 'inventario' && (
                     <InventarioView />
+                )}
+
+                {activeTab === 'proveedores' && (
+                    <ProveedoresView />
                 )}
 
                 </div>
