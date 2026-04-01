@@ -15,6 +15,7 @@ import { ClientesView } from './sections/ClientesView';
 import { AgendaView } from './sections/AgendaView';
 import { UsuariosView } from './sections/UsuariosView';
 import { EmpleadosView } from './sections/EmpleadosView';
+import { InventarioView } from './sections/InventarioView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
@@ -111,6 +112,10 @@ export const DashboardPage = () => {
                 {/* VISTA 5: CONTROL DE USUARIOS */}
                 {activeTab === 'usuarios' && (
                     <UsuariosView />
+                )}
+
+                {activeTab === 'inventario' && (
+                    <InventarioView />
                 )}
 
                 </div>
