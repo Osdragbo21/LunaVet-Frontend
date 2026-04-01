@@ -14,6 +14,7 @@ import { PacientesView } from './sections/PacientesView';
 import { ClientesView } from './sections/ClientesView';
 import { AgendaView } from './sections/AgendaView';
 import { UsuariosView } from './sections/UsuariosView';
+import { EmpleadosView } from './sections/EmpleadosView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
@@ -95,6 +96,11 @@ export const DashboardPage = () => {
                 {/* VISTA 3: DIRECTORIO DE CLIENTES */}
                 {activeTab === 'clientes' && (
                     <ClientesView />
+                )}
+
+                {activeTab === 'empleados' && (
+                    <EmpleadosView />
+                
                 )}
                 
                 {/* VISTA 4: AGENDA MÉDICA */}
