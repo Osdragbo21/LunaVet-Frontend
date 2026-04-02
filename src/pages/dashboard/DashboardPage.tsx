@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import { useQuery } from '@apollo/client/react';
 import { Loader2 } from 'lucide-react';
 
@@ -17,8 +17,10 @@ import { UsuariosView } from './sections/UsuariosView';
 import { EmpleadosView } from './sections/EmpleadosView';
 import { InventarioView } from './sections/InventarioView';
 import { ProveedoresView } from './sections/ProveedoresView';
+import { NuevaVentaView } from './sections/NuevaVentaView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
+
 
 // ==========================================
 // INTERFACES PARA TYPESCRIPT
@@ -121,6 +123,10 @@ export const DashboardPage = () => {
 
                 {activeTab === 'proveedores' && (
                     <ProveedoresView />
+                )}
+
+                {activeTab === 'nueva-venta' && (
+                    <NuevaVentaView />
                 )}
 
                 </div>
