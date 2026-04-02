@@ -1,4 +1,4 @@
-import React, { act } from 'react';
+import React from 'react';
 import { useQuery } from '@apollo/client/react';
 import { Loader2 } from 'lucide-react';
 
@@ -18,9 +18,11 @@ import { EmpleadosView } from './sections/EmpleadosView';
 import { InventarioView } from './sections/InventarioView';
 import { ProveedoresView } from './sections/ProveedoresView';
 import { NuevaVentaView } from './sections/NuevaVentaView';
+import { HistorialVentasView } from './sections/HistorialVentasView';
+import { PedidosView } from './sections/PedidosView';
+import { EstadisticasVentasView } from './sections/EstadisticasVentasView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
-
 
 // ==========================================
 // INTERFACES PARA TYPESCRIPT
@@ -47,16 +49,19 @@ interface QueryResponse {
 export const DashboardPage = () => {
     const { isDarkMode, toggleTheme, isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab } = useDashboard();
 
-    // EJECUTAMOS LA PETICIÓN
+    // EJECUTAMOS LA PETICIÓN DE MÉTRICAS GLOBALES
     const { data, loading, error } = useQuery<QueryResponse>(GET_ADMIN_DASHBOARD_METRICS);
 
     return (
         <div className={`min-h-screen font-sans flex ${isDarkMode ? 'dark' : ''}`}>
         <div className="flex w-full min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] text-[#0F172A] dark:text-[#F8FAFC] transition-colors duration-300">
             
+            {/* BARRA LATERAL (SIDEBAR) */}
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} activeTab={activeTab} setActiveTab={setActiveTab} />
 
             <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+            
+            {/* ENCABEZADO SUPERIOR */}
             <TopHeader setIsSidebarOpen={setIsSidebarOpen} isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -92,42 +97,24 @@ export const DashboardPage = () => {
                     </>
                 )}
 
-                {/* VISTA 2: DIRECTORIO DE PACIENTES */}
-                {activeTab === 'pacientes' && (
-                    <PacientesView />
-                )}
-
-                {/* VISTA 3: DIRECTORIO DE CLIENTES */}
-                {activeTab === 'clientes' && (
-                    <ClientesView />
-                )}
-
-                {activeTab === 'empleados' && (
-                    <EmpleadosView />
+                {/* VISTAS DE DIRECTORIOS */}
+                {activeTab === 'pacientes' && <PacientesView />}
+                {activeTab === 'clientes' && <ClientesView />}
+                {activeTab === 'empleados' && <EmpleadosView />}
+                {activeTab === 'usuarios' && <UsuariosView />}
                 
-                )}
-                
-                {/* VISTA 4: AGENDA MÉDICA */}
-                {activeTab === 'agenda' && (
-                    <AgendaView />
-                )}
+                {/* VISTA DE SERVICIOS */}
+                {activeTab === 'agenda' && <AgendaView />}
 
-                {/* VISTA 5: CONTROL DE USUARIOS */}
-                {activeTab === 'usuarios' && (
-                    <UsuariosView />
-                )}
+                {/* VISTAS DE ADMINISTRACIÓN */}
+                {activeTab === 'inventario' && <InventarioView />}
+                {activeTab === 'proveedores' && <ProveedoresView />}
 
-                {activeTab === 'inventario' && (
-                    <InventarioView />
-                )}
-
-                {activeTab === 'proveedores' && (
-                    <ProveedoresView />
-                )}
-
-                {activeTab === 'nueva-venta' && (
-                    <NuevaVentaView />
-                )}
+                {/* VISTAS DE VENTAS / POS */}
+                {activeTab === 'nueva-venta' && <NuevaVentaView />}
+                {activeTab === 'historial-ventas' && <HistorialVentasView />}
+                {activeTab === 'pedidos' && <PedidosView />}
+                {activeTab === 'metricas-ventas' && <EstadisticasVentasView />}
 
                 </div>
             </div>
