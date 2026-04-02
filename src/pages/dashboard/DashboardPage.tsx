@@ -21,6 +21,7 @@ import { NuevaVentaView } from './sections/NuevaVentaView';
 import { HistorialVentasView } from './sections/HistorialVentasView';
 import { PedidosView } from './sections/PedidosView';
 import { EstadisticasVentasView } from './sections/EstadisticasVentasView';
+import { ConsultasView } from './sections/ConsultasView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
@@ -103,8 +104,9 @@ export const DashboardPage = () => {
                 {activeTab === 'empleados' && <EmpleadosView />}
                 {activeTab === 'usuarios' && <UsuariosView />}
                 
-                {/* VISTA DE SERVICIOS */}
+                {/* VISTAS DE SERVICIOS MÉDICOS */}
                 {activeTab === 'agenda' && <AgendaView />}
+                {activeTab === 'consultas' && <ConsultasView />}
 
                 {/* VISTAS DE ADMINISTRACIÓN */}
                 {activeTab === 'inventario' && <InventarioView />}
