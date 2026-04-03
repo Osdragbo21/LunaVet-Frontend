@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   X, LayoutDashboard, ShoppingCart, Stethoscope, Shield, Contact,
-  PlusCircle, Package, History, BarChart2, Calendar, Scissors, Award,
-  Users, PawPrint, Briefcase, UserCircle, Boxes, Truck, LogOut, ChevronRight, ChevronDown, Activity
-} from 'lucide-react'; // <-- Asegúrate de tener 'Activity'
+  PlusCircle, Package, History, BarChart2, Calendar, Scissors, 
+  Users, PawPrint, Briefcase, UserCircle, Boxes, Truck, LogOut, 
+  ChevronRight, ChevronDown, Activity, Pill
+} from 'lucide-react';
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -15,17 +17,26 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ 
   isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab 
 }) => {
-  // Estado para controlar qué submenús están abiertos (Inicia vacío para que todos estén cerrados por defecto)
+  const navigate = useNavigate();
+
+  // Estado para controlar qué submenús están abiertos (Acordeón: uno a la vez)
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   const toggleMenu = (menuId: string) => {
-    // Al no usar "...prev", garantizamos que al abrir uno nuevo, los demás se cierren automáticamente.
+    // Al abrir uno nuevo, los demás se cierran automáticamente.
     setOpenMenus(prev => ({
       [menuId]: !prev[menuId]
     }));
   };
+
+  // Función para cerrar sesión de forma segura
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
   
-  // Jerarquía basada en tu esquema y la base de datos
+  // Jerarquía actualizada: Incluye Farmacia y elimina Especialidades
   const menuItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard Principal' },
     {
@@ -42,8 +53,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       subItems: [
         { id: 'agenda', label: 'Agenda', icon: Calendar },
         { id: 'consultas', label: 'Consulta', icon: Stethoscope },
-        { id: 'hospitalizacion', label: 'Hospitalización', icon: Activity }, // <-- NUEVO ITEM AÑADIDO AL MENÚ
-        { id: 'especialidades', label: 'Especialidad', icon: Award },
+        { id: 'hospitalizacion', label: 'Hospitalización', icon: Activity },
+        { id: 'medicamentos', label: 'Farmacia / Medicamentos', icon: Pill }, // Nuevo ítem estratégico
         { id: 'estetica', label: 'Estética', icon: Scissors },
       ]
     },
@@ -92,7 +103,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <p className="px-4 text-[11px] font-extrabold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-widest mb-4">Menú Principal</p>
           
           {menuItems.map((item) => {
-            // Si es un botón simple (como Dashboard)
             if (!item.subItems) {
               return (
                 <button
@@ -111,8 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               );
             }
 
-            // Si es un grupo con submenús (Acordeón)
-            const isOpen = openMenus[item.id];
+            const isOpen = !!openMenus[item.id];
             const isChildActive = item.subItems.some(sub => sub.id === activeTab);
 
             return (
@@ -159,7 +168,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Usuario / Bottom */}
         <div className="p-5 border-t border-black/5 dark:border-white/5 shrink-0">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors"
+          >
             <LogOut size={20} />
             Cerrar Sesión
           </button>
