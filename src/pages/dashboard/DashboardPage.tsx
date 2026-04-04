@@ -24,6 +24,7 @@ import { EstadisticasVentasView } from './sections/EstadisticasVentasView';
 import { ConsultasView } from './sections/ConsultasView';
 import {HospitalizacionView } from './sections/HospitalizacionView';
 import { MedicamentosView } from './sections/MedicamentosView';
+import { VacunasView } from './sections/VacunasView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
@@ -111,6 +112,7 @@ export const DashboardPage = () => {
                 {activeTab === 'consultas' && <ConsultasView />}
                 {activeTab === 'hospitalizacion' && <HospitalizacionView />}
                 {activeTab === 'medicamentos' && <MedicamentosView />}
+                {activeTab === 'vacunas' && <VacunasView />}
 
                 {/* VISTAS DE ADMINISTRACIÓN */}
                 {activeTab === 'inventario' && <InventarioView />}

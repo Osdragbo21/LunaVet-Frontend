@@ -4,7 +4,7 @@ import {
   X, LayoutDashboard, ShoppingCart, Stethoscope, Shield, Contact,
   PlusCircle, Package, History, BarChart2, Calendar, Scissors, 
   Users, PawPrint, Briefcase, UserCircle, Boxes, Truck, LogOut, 
-  ChevronRight, ChevronDown, Activity, Pill
+  ChevronRight, ChevronDown, Activity, Pill, Syringe
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -36,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     navigate('/login');
   };
   
-  // Jerarquía actualizada: Incluye Farmacia y elimina Especialidades
+  // Jerarquía actualizada: Incluye Farmacia, Vacunas y Especialidades
   const menuItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard Principal' },
     {
@@ -54,7 +54,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'agenda', label: 'Agenda', icon: Calendar },
         { id: 'consultas', label: 'Consulta', icon: Stethoscope },
         { id: 'hospitalizacion', label: 'Hospitalización', icon: Activity },
-        { id: 'medicamentos', label: 'Farmacia / Medicamentos', icon: Pill }, // Nuevo ítem estratégico
+        { id: 'medicamentos', label: 'Farmacia / Medicamentos', icon: Pill },
+        { id: 'vacunas', label: 'Catálogo Vacunas', icon: Syringe },
         { id: 'estetica', label: 'Estética', icon: Scissors },
       ]
     },
