@@ -112,9 +112,13 @@ export const ConsultasView = () => {
   // NUEVO: Estado para abrir el ingreso rápido (cita sin reserva)
   const [isNuevaCitaOpen, setIsNuevaCitaOpen] = useState(false);
 
-  // Ejecutamos ambas queries
-  const { data: dataSala, loading: loadingSala, error: errorSala } = useQuery<{citas: CitaSalaEspera[]}>(GET_CITAS_SALA_ESPERA);
-  const { data: dataHistorial, loading: loadingHistorial, error: errorHistorial } = useQuery<{consultas: ConsultaHistorial[]}>(GET_HISTORIAL_CONSULTAS);
+  // Ejecutamos ambas queries sin caché para que siempre estén frescas
+  const { data: dataSala, loading: loadingSala, error: errorSala } = useQuery<{citas: CitaSalaEspera[]}>(GET_CITAS_SALA_ESPERA, {
+    fetchPolicy: 'network-only'
+  });
+  const { data: dataHistorial, loading: loadingHistorial, error: errorHistorial } = useQuery<{consultas: ConsultaHistorial[]}>(GET_HISTORIAL_CONSULTAS, {
+    fetchPolicy: 'network-only'
+  });
 
   // --- LÓGICA PARA SALA DE ESPERA ---
   const citasDeHoy = dataSala?.citas?.filter(cita => {

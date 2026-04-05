@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, Plus, Package, Edit2, AlertTriangle, CheckCircle, 
   Store, Loader2, X, MoreVertical, Trash2, EyeOff, Tag, DollarSign, 
-  Image as ImageIcon, Truck 
+  Image as ImageIcon, Truck, UploadCloud
 } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
@@ -116,6 +116,8 @@ const ModalEditarProducto = ({ isOpen, producto, onClose }: { isOpen: boolean, p
     imagen_url: '', descripcion: ''
   });
 
+  const [localError, setLocalError] = useState<string | null>(null);
+
   const { data: proveedoresData, loading: loadingProveedores } = useQuery<GetProveedoresResponse>(GET_PROVEEDORES_DROPDOWN, { skip: !isOpen });
   const [updateProducto, { loading, error }] = useMutation(UPDATE_PRODUCTO, { refetchQueries: ['GetProductos'] });
 
@@ -139,8 +141,26 @@ const ModalEditarProducto = ({ isOpen, producto, onClose }: { isOpen: boolean, p
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setLocalError("La imagen es demasiado grande. Máximo 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, imagen_url: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalError(null);
     if (!producto) return;
     try {
       await updateProducto({
@@ -182,6 +202,7 @@ const ModalEditarProducto = ({ isOpen, producto, onClose }: { isOpen: boolean, p
         <div className="p-6 overflow-y-auto">
           <form id="editProdForm" onSubmit={handleSubmit} className="space-y-6">
             {error && <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium">{error.message}</div>}
+            {localError && <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium">{localError}</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Columna Izquierda */}
@@ -243,8 +264,21 @@ const ModalEditarProducto = ({ isOpen, producto, onClose }: { isOpen: boolean, p
                 </div>
 
                 <div className="space-y-2">
-                  <Label>URL de Imagen</Label>
-                  <Input name="imagen_url" type="url" value={formData.imagen_url} onChange={handleChange} icon={ImageIcon} required disabled={loading} />
+                  <Label>Imagen del Producto (URL o Archivo)</Label>
+                  <div className="flex gap-2 items-center">
+                    <div className="flex-1">
+                      <Input name="imagen_url" type="text" value={formData.imagen_url} onChange={handleChange} icon={ImageIcon} required disabled={loading} placeholder="URL o subir archivo..." />
+                    </div>
+                    <input type="file" id={`img-upload-edit-${producto?.id_producto}`} className="hidden" accept="image/*" onChange={handleImageUpload} disabled={loading} />
+                    <Button type="button" variant="outline" onClick={() => document.getElementById(`img-upload-edit-${producto?.id_producto}`)?.click()} disabled={loading} className="!px-3 shrink-0" title="Subir Imagen Local">
+                      <UploadCloud size={20} />
+                    </Button>
+                  </div>
+                  {formData.imagen_url && formData.imagen_url.length > 0 && (
+                    <div className="mt-2 w-16 h-16 rounded-lg border border-black/10 dark:border-white/10 overflow-hidden bg-white">
+                      <img src={formData.imagen_url} alt="Vista previa" className="w-full h-full object-cover" onError={(e:any)=> e.target.style.display='none'}/>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

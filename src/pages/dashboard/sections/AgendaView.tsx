@@ -77,8 +77,10 @@ export const AgendaView = () => {
   const [filtroEstado, setFiltroEstado] = useState('Todas');
   const [menuEstadoAbierto, setMenuEstadoAbierto] = useState<number | null>(null);
   
-  // Inyectamos la interfaz en el useQuery
-  const { data, loading, error } = useQuery<GetCitasResponse>(GET_CITAS_AGENDA);
+  // Inyectamos la interfaz en el useQuery y agregamos network-only
+  const { data, loading, error } = useQuery<GetCitasResponse>(GET_CITAS_AGENDA, {
+    fetchPolicy: 'network-only'
+  });
   
   // Añadimos refetchQueries para que se actualice la vista al cambiar el estado
   const [updateEstado] = useMutation(UPDATE_ESTADO_CITA, {

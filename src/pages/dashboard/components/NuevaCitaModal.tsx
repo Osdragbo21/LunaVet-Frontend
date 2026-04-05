@@ -79,7 +79,8 @@ export const NuevaCitaModal: React.FC<NuevaCitaModalProps> = ({ isOpen, onClose 
   const { data, loading: loadingDatos } = useQuery<GetDatosFormularioResponse>(GET_DATOS_FORMULARIO, { skip: !isOpen });
 
   const [createCita, { loading: saving, error: saveError }] = useMutation(CREATE_CITA, {
-    refetchQueries: ['GetCitasAgenda']
+    // Añadimos GetCitasSalaEspera para que la sala de consultas se entere del nuevo ingreso
+    refetchQueries: ['GetCitasAgenda', 'GetCitasSalaEspera']
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

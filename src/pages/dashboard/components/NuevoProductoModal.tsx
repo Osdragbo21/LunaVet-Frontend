@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Package, Tag, DollarSign, Image as ImageIcon, Loader2, CheckCircle, AlertTriangle, Truck } from 'lucide-react';
+import { X, Package, Tag, DollarSign, Image as ImageIcon, Loader2, CheckCircle, AlertTriangle, Truck, UploadCloud } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { Label } from '../../../components/ui/Label';
@@ -75,6 +75,24 @@ export const NuevoProductoModal: React.FC<NuevoProductoModalProps> = ({ isOpen, 
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     setFormData(prev => ({ ...prev, [name]: val }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validación de tamaño (Máximo 2MB para no saturar la Base de Datos)
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMsg("La imagen seleccionada es muy pesada. El tamaño máximo es 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // El resultado es un string en Base64 (data:image/jpeg;base64,...)
+      setFormData(prev => ({ ...prev, imagen_url: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -215,8 +233,21 @@ export const NuevoProductoModal: React.FC<NuevoProductoModalProps> = ({ isOpen, 
                 </div>
 
                 <div className="space-y-2">
-                  <Label>URL de Imagen</Label>
-                  <Input name="imagen_url" type="url" value={formData.imagen_url} onChange={handleChange} icon={ImageIcon} placeholder="https://..." required disabled={isSubmitting || successMsg} />
+                  <Label>Imagen del Producto (URL o Archivo)</Label>
+                  <div className="flex gap-2 items-center">
+                    <div className="flex-1">
+                      <Input name="imagen_url" type="text" value={formData.imagen_url} onChange={handleChange} icon={ImageIcon} placeholder="URL o subir archivo..." required disabled={isSubmitting || successMsg} />
+                    </div>
+                    <input type="file" id="img-upload-new" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isSubmitting || successMsg} />
+                    <Button type="button" variant="outline" onClick={() => document.getElementById('img-upload-new')?.click()} disabled={isSubmitting || successMsg} className="!px-3 shrink-0" title="Subir Imagen Local">
+                      <UploadCloud size={20} />
+                    </Button>
+                  </div>
+                  {formData.imagen_url && formData.imagen_url.length > 0 && (
+                    <div className="mt-2 w-16 h-16 rounded-lg border border-black/10 dark:border-white/10 overflow-hidden bg-white">
+                      <img src={formData.imagen_url} alt="Vista previa" className="w-full h-full object-cover" onError={(e:any)=> e.target.style.display='none'}/>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

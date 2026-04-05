@@ -57,7 +57,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'hospitalizacion', label: 'Hospitalización', icon: Activity },
         { id: 'medicamentos', label: 'Farmacia / Medicamentos', icon: Pill },
         { id: 'vacunas', label: 'Catálogo Vacunas', icon: Syringe },
-        { id: 'estetica', label: 'Estética', icon: Scissors },
       ]
     },
     {
