@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   X, Calendar as CalendarIcon, Stethoscope, AlertTriangle, 
   FileText, Loader2, Thermometer, Weight, HeartPulse, 
-  CheckCircle, Clock, Activity, Plus, Syringe, ShieldCheck, ShieldAlert
+  CheckCircle, Clock, Activity, Plus, Syringe, ShieldCheck, ShieldAlert,
+  Paperclip, Image as ImageIcon, ExternalLink
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -34,6 +35,13 @@ const GET_EXPEDIENTE_PACIENTE = gql`
           frecuencia_cardiaca
           diagnostico
           observaciones
+          archivos {
+            id_archivo
+            nombre_archivo
+            url_archivo
+            tipo_documento
+            fecha_subida
+          }
         }
       }
       hospitalizaciones {
@@ -47,7 +55,7 @@ const GET_EXPEDIENTE_PACIENTE = gql`
 `;
 
 // ==========================================
-// NUEVAS QUERIES PARA LA CARTILLA DE VACUNACIÓN
+// QUERIES PARA LA CARTILLA DE VACUNACIÓN
 // ==========================================
 const GET_VACUNAS = gql`
   query GetVacunas {
@@ -90,12 +98,21 @@ const REGISTRAR_VACUNACION = gql`
 // ==========================================
 // 2. INTERFACES DE TYPESCRIPT
 // ==========================================
+interface ArchivoAdjunto {
+  id_archivo: number;
+  nombre_archivo: string;
+  url_archivo: string;
+  tipo_documento: string;
+  fecha_subida: string;
+}
+
 interface ConsultaDetalle {
   peso_actual: number;
   temperatura: number;
   frecuencia_cardiaca: number;
   diagnostico: string;
   observaciones: string;
+  archivos?: ArchivoAdjunto[];
 }
 
 interface CitaExpediente {
@@ -140,7 +157,6 @@ interface GetCartillaResponse {
   getCartillaPaciente: RegistroVacuna[];
 }
 
-// NUEVAS INTERFACES PARA CORREGIR EL ERROR
 interface VacunaDropdown {
   id_vacuna: number;
   nombre_vacuna: string;
@@ -162,7 +178,6 @@ const ModalNuevaVacuna = ({ isOpen, pacienteId, onClose }: { isOpen: boolean, pa
     proxima_dosis: ''
   });
 
-  // INYECTAMOS LA INTERFAZ AQUÍ
   const { data: dataVacunas, loading: loadingVacunas } = useQuery<GetVacunasResponse>(GET_VACUNAS, { skip: !isOpen });
   
   const [registrarVacuna, { loading, error }] = useMutation(REGISTRAR_VACUNACION, {
@@ -212,7 +227,6 @@ const ModalNuevaVacuna = ({ isOpen, pacienteId, onClose }: { isOpen: boolean, pa
               <Label>Biológico / Vacuna</Label>
               <select name="vacuna_id" value={formData.vacuna_id} onChange={handleChange} required disabled={loading || loadingVacunas} className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 appearance-none">
                 <option value="">Selecciona la vacuna...</option>
-                {/* AL ESTAR TIPADO, YA NO NECESITAMOS (v: any) */}
                 {dataVacunas?.vacunas.map((v) => (
                   <option key={v.id_vacuna} value={v.id_vacuna}>{v.nombre_vacuna}</option>
                 ))}
@@ -277,13 +291,11 @@ export const ExpedienteModal: React.FC<ExpedienteModalProps> = ({ isOpen, pacien
   const [activeTab, setActiveTab] = useState<'historial' | 'cartilla'>('historial');
   const [isNuevaVacunaOpen, setIsNuevaVacunaOpen] = useState(false);
 
-  // Inyectamos la interfaz en useQuery para eliminar el error de data?.paciente
   const { data, loading, error } = useQuery<GetExpedientePacienteResponse>(GET_EXPEDIENTE_PACIENTE, {
     variables: { id: pacienteId },
     skip: !isOpen || !pacienteId
   });
 
-  // QUERY: Traemos la cartilla
   const { data: dataCartilla, loading: loadingCartilla } = useQuery<GetCartillaResponse>(GET_CARTILLA_PACIENTE, {
     variables: { paciente_id: pacienteId },
     skip: !isOpen || !pacienteId
@@ -415,6 +427,34 @@ export const ExpedienteModal: React.FC<ExpedienteModalProps> = ({ isOpen, pacien
                                   <div>
                                     <p className="text-xs text-[#0F172A] dark:text-white font-medium"><strong>Dx:</strong> {cita.consulta.diagnostico}</p>
                                   </div>
+
+                                  {/* GALERÍA DE ARCHIVOS */}
+                                  {cita.consulta.archivos && cita.consulta.archivos.length > 0 && (
+                                    <div className="pt-3 mt-3 border-t border-dashed border-black/10 dark:border-white/10">
+                                      <h5 className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1 mb-2">
+                                        <Paperclip size={12}/> Archivos Adjuntos ({cita.consulta.archivos.length})
+                                      </h5>
+                                      <div className="flex flex-wrap gap-2">
+                                        {cita.consulta.archivos.map(archivo => (
+                                          <a 
+                                            key={archivo.id_archivo} 
+                                            href={archivo.url_archivo} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1E293B] border border-black/5 dark:border-white/5 rounded-lg text-xs font-bold text-[#3B82F6] hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors shadow-sm group"
+                                          >
+                                            {archivo.tipo_documento.includes('Imagen') || archivo.tipo_documento.includes('Radiografía') 
+                                              ? <ImageIcon size={14} className="text-purple-500"/> 
+                                              : <FileText size={14} className="text-rose-500"/>
+                                            }
+                                            <span className="truncate max-w-[120px]">{archivo.nombre_archivo}</span>
+                                            <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity ml-1"/>
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
                                 </div>
                               ) : (
                                 <div className="mt-4">
