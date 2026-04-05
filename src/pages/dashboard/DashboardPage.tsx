@@ -26,6 +26,8 @@ import {HospitalizacionView } from './sections/HospitalizacionView';
 import { MedicamentosView } from './sections/MedicamentosView';
 import { VacunasView } from './sections/VacunasView';
 import { ServiciosView } from './sections/ServiciosView';
+import { KardexView } from './sections/KardexView';
+import { AuditoriaView } from './sections/AuditoriaView';
 
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
@@ -119,6 +121,8 @@ export const DashboardPage = () => {
                 {activeTab === 'inventario' && <InventarioView />}
                 {activeTab === 'proveedores' && <ProveedoresView />}
                 {activeTab === 'servicios-catalogo' && <ServiciosView />}
+                {activeTab === 'kardex' && <KardexView />}
+                {activeTab === 'auditoria' && <AuditoriaView />}
 
                 {/* VISTAS DE VENTAS / POS */}
                 {activeTab === 'nueva-venta' && <NuevaVentaView />}
