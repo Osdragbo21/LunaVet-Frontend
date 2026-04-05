@@ -4,7 +4,7 @@ import {
   X, LayoutDashboard, ShoppingCart, Stethoscope, Shield, Contact,
   PlusCircle, Package, History, BarChart2, Calendar, Scissors, 
   Users, PawPrint, Briefcase, UserCircle, Boxes, Truck, LogOut, 
-  ChevronRight, ChevronDown, Activity, Pill, Syringe
+  ChevronRight, ChevronDown, Activity, Pill, Syringe, Award
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -18,31 +18,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab 
 }) => {
   const navigate = useNavigate();
-
-  // Estado para controlar qué submenús están abiertos (Acordeón: uno a la vez)
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   const toggleMenu = (menuId: string) => {
-    // Al abrir uno nuevo, los demás se cierran automáticamente.
-    setOpenMenus(prev => ({
-      [menuId]: !prev[menuId]
-    }));
+    setOpenMenus(prev => ({ [menuId]: !prev[menuId] }));
   };
 
-  // Función para cerrar sesión de forma segura
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
   };
   
-  // Jerarquía actualizada: Incluye Farmacia, Vacunas y Especialidades
   const menuItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard Principal' },
     {
       id: 'ventas-group', icon: ShoppingCart, label: 'Ventas',
       subItems: [
-        { id: 'nueva-venta', label: 'Nueva Venta', icon: PlusCircle },
+        { id: 'nueva-venta', label: 'Caja (Punto de Venta)', icon: PlusCircle },
         { id: 'pedidos', label: 'Pedidos (Estatus)', icon: Package },
         { id: 'historial-ventas', label: 'Historial de Ventas', icon: History },
         { id: 'metricas-ventas', label: 'Estadísticas de Ventas', icon: BarChart2 },
@@ -72,6 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'admin-group', icon: Shield, label: 'Administración',
       subItems: [
         { id: 'inventario', label: 'Inventario', icon: Boxes },
+        { id: 'servicios-catalogo', label: 'Catálogo de Servicios', icon: Award },
         { id: 'proveedores', label: 'Proveedores', icon: Truck },
       ]
     }
@@ -127,7 +121,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             return (
               <div key={item.id} className="mb-2">
-                {/* Botón Padre */}
                 <button
                   onClick={() => toggleMenu(item.id)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-[12px] font-medium transition-all duration-200
@@ -142,8 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {isOpen ? <ChevronDown size={16} className="text-[#64748B]" /> : <ChevronRight size={16} className="text-[#64748B]" />}
                 </button>
 
-                {/* Sub-elementos desplegables */}
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
                   <div className="flex flex-col gap-1 pl-11 pr-2 border-l-2 border-black/5 dark:border-white/5 ml-6">
                     {item.subItems.map((subItem) => (
                       <button
@@ -167,7 +159,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        {/* Usuario / Bottom */}
         <div className="p-5 border-t border-black/5 dark:border-white/5 shrink-0">
           <button 
             onClick={handleLogout}
@@ -179,7 +170,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </aside>
 
-      {/* OVERLAY PARA MÓVIL */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/20 dark:bg-black/40 z-40 lg:hidden backdrop-blur-sm"
