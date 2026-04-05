@@ -41,7 +41,9 @@ export const AuditoriaView = () => {
   const [filtroAccion, setFiltroAccion] = useState('Todas');
   const [menuFiltrosAbierto, setMenuFiltrosAbierto] = useState(false);
 
-  const { data, loading, error } = useQuery<{ auditoriasLog: AuditoriaLog[] }>(GET_AUDITORIA_LOG);
+  const { data, loading, error } = useQuery<{ auditoriasLog: AuditoriaLog[] }>(GET_AUDITORIA_LOG, {
+    fetchPolicy: 'network-only' // <-- SOLUCIÓN: Obliga a traer los datos reales del servidor siempre
+  });
 
   const getActionBadge = (accion: string) => {
     switch (accion.toUpperCase()) {
