@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 
 export const useDashboard = () => {
-  // Inicializamos leyendo el localStorage para recordar el tema
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('lunaVetTheme');
     return savedTheme === 'dark';
@@ -13,21 +12,30 @@ export const useDashboard = () => {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('lunaVetTheme', 'dark'); // Guardamos preferencia
+      localStorage.setItem('lunaVetTheme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('lunaVetTheme', 'light'); // Guardamos preferencia
+      localStorage.setItem('lunaVetTheme', 'light');
     }
   }, [isDarkMode]);
+
+  // ========================================================
+  // ESTA ES LA MAGIA: Escuchamos el clic desde el WelcomeBanner
+  // ========================================================
+  useEffect(() => {
+    const handleSwitchTab = (e: any) => {
+      if (e.detail) setActiveTab(e.detail);
+    };
+
+    window.addEventListener('lunavet:switch-tab', handleSwitchTab);
+    return () => window.removeEventListener('lunavet:switch-tab', handleSwitchTab);
+  }, []);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   return {
-    isDarkMode,
-    toggleTheme,
-    isSidebarOpen,
-    setIsSidebarOpen,
-    activeTab,
-    setActiveTab
+    isDarkMode, toggleTheme,
+    isSidebarOpen, setIsSidebarOpen,
+    activeTab, setActiveTab
   };
 };

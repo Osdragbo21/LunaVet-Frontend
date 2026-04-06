@@ -22,7 +22,7 @@ import { HistorialVentasView } from './sections/HistorialVentasView';
 import { PedidosView } from './sections/PedidosView';
 import { EstadisticasVentasView } from './sections/EstadisticasVentasView';
 import { ConsultasView } from './sections/ConsultasView';
-import {HospitalizacionView } from './sections/HospitalizacionView';
+import { HospitalizacionView } from './sections/HospitalizacionView';
 import { MedicamentosView } from './sections/MedicamentosView';
 import { VacunasView } from './sections/VacunasView';
 import { ServiciosView } from './sections/ServiciosView';
@@ -32,20 +32,13 @@ import { AuditoriaView } from './sections/AuditoriaView';
 import { GET_ADMIN_DASHBOARD_METRICS } from './graphql/dashboard.queries';
 
 // ==========================================
-// INTERFACES PARA TYPESCRIPT
+// INTERFACES PARA TYPESCRIPT (LIMPIAS)
 // ==========================================
-interface ChartItem {
-    label: string;
-    value: number;
-}
-
 interface DashboardMetrics {
     totalPacientesActivos: number;
     citasHoy: number;
     productosStockBajo: number;
     ingresosMes: number;
-    graficaCitas: ChartItem[];
-    graficaEspecies: ChartItem[];
 }
 
 interface QueryResponse {
@@ -56,19 +49,16 @@ interface QueryResponse {
 export const DashboardPage = () => {
     const { isDarkMode, toggleTheme, isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab } = useDashboard();
 
-    // EJECUTAMOS LA PETICIÓN DE MÉTRICAS GLOBALES
     const { data, loading, error } = useQuery<QueryResponse>(GET_ADMIN_DASHBOARD_METRICS);
 
     return (
         <div className={`min-h-screen font-sans flex ${isDarkMode ? 'dark' : ''}`}>
         <div className="flex w-full min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] text-[#0F172A] dark:text-[#F8FAFC] transition-colors duration-300">
             
-            {/* BARRA LATERAL (SIDEBAR) */}
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} activeTab={activeTab} setActiveTab={setActiveTab} />
 
             <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
             
-            {/* ENCABEZADO SUPERIOR */}
             <TopHeader setIsSidebarOpen={setIsSidebarOpen} isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -93,43 +83,36 @@ export const DashboardPage = () => {
                     )}
 
                     {!loading && !error && data && data.getAdminDashboardMetrics && (
-                        <>
                         <MetricsGrid metrics={data.getAdminDashboardMetrics} />
-                        <ChartsSection 
-                            graficaCitas={data.getAdminDashboardMetrics.graficaCitas} 
-                            graficaEspecies={data.getAdminDashboardMetrics.graficaEspecies}
-                        />
-                        </>
                     )}
+
+                    {/* SECCIÓN DE GRÁFICAS TOTALMENTE INDEPENDIENTE */}
+                    <ChartsSection />
                     </>
                 )}
 
-                {/* VISTAS DE DIRECTORIOS */}
+                {/* VISTAS MODULARES */}
                 {activeTab === 'pacientes' && <PacientesView />}
                 {activeTab === 'clientes' && <ClientesView />}
                 {activeTab === 'empleados' && <EmpleadosView />}
                 {activeTab === 'usuarios' && <UsuariosView />}
                 
-                {/* VISTAS DE SERVICIOS MÉDICOS */}
                 {activeTab === 'agenda' && <AgendaView />}
                 {activeTab === 'consultas' && <ConsultasView />}
                 {activeTab === 'hospitalizacion' && <HospitalizacionView />}
                 {activeTab === 'medicamentos' && <MedicamentosView />}
                 {activeTab === 'vacunas' && <VacunasView />}
 
-                {/* VISTAS DE ADMINISTRACIÓN */}
                 {activeTab === 'inventario' && <InventarioView />}
                 {activeTab === 'proveedores' && <ProveedoresView />}
                 {activeTab === 'servicios-catalogo' && <ServiciosView />}
                 {activeTab === 'kardex' && <KardexView />}
                 {activeTab === 'auditoria' && <AuditoriaView />}
 
-                {/* VISTAS DE VENTAS / POS */}
                 {activeTab === 'nueva-venta' && <NuevaVentaView />}
                 {activeTab === 'historial-ventas' && <HistorialVentasView />}
                 {activeTab === 'pedidos' && <PedidosView />}
                 {activeTab === 'metricas-ventas' && <EstadisticasVentasView />}
-
 
                 </div>
             </div>

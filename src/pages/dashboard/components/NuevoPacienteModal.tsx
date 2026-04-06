@@ -25,9 +25,6 @@ const CREATE_PACIENTE = gql`
       id_paciente
       nombre
       especie
-      cliente {
-        nombre_completo
-      }
     }
   }
 `;
