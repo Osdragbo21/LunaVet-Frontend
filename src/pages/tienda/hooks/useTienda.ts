@@ -61,7 +61,11 @@ export const useTienda = () => {
 
   const [isMascotasOpen, setIsMascotasOpen] = useState(false);
   const [isPedidosOpen, setIsPedidosOpen] = useState(false);
-  const [isPerfilOpen, setIsPerfilOpen] = useState(false); // <-- NUEVO ESTADO PARA EL PERFIL
+  const [isPerfilOpen, setIsPerfilOpen] = useState(false);
+
+  // NUEVOS ESTADOS PARA BUSCADOR Y CATEGORÍAS
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('Todos');
 
   const apolloClient = useApolloClient();
 
@@ -181,6 +185,9 @@ export const useTienda = () => {
     successOrder, setSuccessOrder,
     isMascotasOpen, setIsMascotasOpen,
     isPedidosOpen, setIsPedidosOpen,
-    isPerfilOpen, setIsPerfilOpen // <-- EXPORTAMOS EL NUEVO ESTADO
+    isPerfilOpen, setIsPerfilOpen,
+    // EXPORTAMOS LOS NUEVOS ESTADOS
+    searchTerm, setSearchTerm,
+    activeCategory, setActiveCategory
   };
 };

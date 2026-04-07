@@ -15,7 +15,7 @@ import { Footer } from './sections/Footer';
 import { CartPanel } from './components/CartPanel';
 import { MisMascotasModal } from './components/MisMascotasModal';
 import { MisPedidosModal } from './components/MisPedidosModal';
-import { MiPerfilModal } from './components/MiPerfilModal'; // <-- NUEVA IMPORTACIÓN
+import { MiPerfilModal } from './components/MiPerfilModal';
 
 export const TiendaPage = () => {
   const { 
@@ -27,7 +27,9 @@ export const TiendaPage = () => {
     successOrder, setSuccessOrder,
     isMascotasOpen, setIsMascotasOpen,
     isPedidosOpen, setIsPedidosOpen,
-    isPerfilOpen, setIsPerfilOpen // <-- SACAMOS EL ESTADO
+    isPerfilOpen, setIsPerfilOpen,
+    searchTerm, setSearchTerm,           // Nuevos estados
+    activeCategory, setActiveCategory    // Nuevos estados
   } = useTienda();
 
   return (
@@ -41,15 +43,25 @@ export const TiendaPage = () => {
           onOpenCart={() => setIsCartOpen(true)}
           onOpenMascotas={() => setIsMascotasOpen(true)}
           onOpenPedidos={() => setIsPedidosOpen(true)}
-          onOpenPerfil={() => setIsPerfilOpen(true)} // <-- LE PASAMOS LA FUNCIÓN AL HEADER
+          onOpenPerfil={() => setIsPerfilOpen(true)}
+          searchTerm={searchTerm}              // Pasamos buscador
+          setSearchTerm={setSearchTerm}        // Pasamos buscador
         />
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
           <HeroBanner />
           <BenefitsSection />
-          <CategoriesSection />
           
-          <ProductsGrid addToCart={addToCart} />
+          <CategoriesSection 
+            activeCategory={activeCategory} 
+            setActiveCategory={setActiveCategory} 
+          />
+          
+          <ProductsGrid 
+            addToCart={addToCart} 
+            searchTerm={searchTerm} 
+            activeCategory={activeCategory} 
+          />
         </main>
         
         <Footer />
@@ -69,21 +81,9 @@ export const TiendaPage = () => {
           setSuccessOrder={setSuccessOrder}
         />
 
-        <MisMascotasModal 
-          isOpen={isMascotasOpen} 
-          onClose={() => setIsMascotasOpen(false)} 
-        />
-        
-        <MisPedidosModal 
-          isOpen={isPedidosOpen} 
-          onClose={() => setIsPedidosOpen(false)} 
-        />
-
-        {/* NUEVO MODAL */}
-        <MiPerfilModal 
-          isOpen={isPerfilOpen}
-          onClose={() => setIsPerfilOpen(false)}
-        />
+        <MisMascotasModal isOpen={isMascotasOpen} onClose={() => setIsMascotasOpen(false)} />
+        <MisPedidosModal isOpen={isPedidosOpen} onClose={() => setIsPedidosOpen(false)} />
+        <MiPerfilModal isOpen={isPerfilOpen} onClose={() => setIsPerfilOpen(false)} />
       </div>
     </div>
   );
