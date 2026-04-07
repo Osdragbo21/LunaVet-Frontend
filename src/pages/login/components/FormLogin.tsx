@@ -1,18 +1,20 @@
-import React from 'react';
-import { User, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Lock, Eye, EyeOff, ArrowRight, Info, Phone, Mail, X } from 'lucide-react';
 
-// Importamos los componentes base de UI reutilizables
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 
 export const FormLogin = ({ loginData }: { loginData: any }) => {
     const {
         username, setUsername,
-        password, setPassword,
+        passwordHash, setPasswordHash,
         showPassword, togglePassword,
         isLoading, handleLogin,
-        errorMsg // Variable de error conectada
+        errorMsg 
     } = loginData;
+
+    // Estado para la ventanita de soporte
+    const [showSupport, setShowSupport] = useState(false);
 
     return (
         <div className="relative w-full">
@@ -28,8 +30,6 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
             <div className="absolute -inset-3 rounded-[20px] blur-2xl bg-[#3B82F6]/25 dark:bg-[#3B82F6]/40 animate-pulse"></div>
             
             <div className="relative bg-[#FFFFFF] dark:bg-[#1E293B] p-8 rounded-[12px] border border-black/10 dark:border-white/5 shadow-sm transition-colors duration-300 w-full">
-                
-                {/* Nota: El botón de cambio de tema (Sol/Luna) NO va aquí. Ese botón vive en LoginPage.tsx */}
                 
                 <form onSubmit={handleLogin} className="space-y-6">
                 
@@ -51,7 +51,7 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            placeholder="ej: admin.vet"
+                            placeholder="ej: juan.perez11"
                             className="pl-11"
                             required
                         />
@@ -61,9 +61,9 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <label htmlFor="password" className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC] block text-left">Contraseña</label>
-                        <a href="#" className="text-sm font-medium text-[#3B82F6] hover:text-[#2563EB] hover:underline transition-colors">
+                        <button type="button" onClick={() => setShowSupport(!showSupport)} className="text-sm font-medium text-[#3B82F6] hover:text-[#2563EB] hover:underline transition-colors">
                             ¿La olvidaste?
-                        </a>
+                        </button>
                     </div>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B] dark:text-[#94A3B8]">
@@ -72,8 +72,8 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                         <Input 
                             id="password"
                             type={showPassword ? "text" : "password"}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            value={passwordHash}
+                            onChange={(e) => setPasswordHash(e.target.value)}
                             placeholder="••••••••"
                             className="pl-11 pr-12"
                             required
@@ -86,18 +86,20 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                     </div>
                 </div>
 
-                <div className="flex items-center text-left">
-                    <input
-                        id="remember-me"
-                        type="checkbox"
-                        className="w-4 h-4 rounded border-gray-300 accent-[#3B82F6] cursor-pointer"
-                    />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-[#64748B] dark:text-[#94A3B8] cursor-pointer">
-                        Mantener sesión iniciada
-                    </label>
-                </div>
+                {/* Info de Soporte Técnico */}
+                {showSupport && (
+                    <div className="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl relative animate-in fade-in zoom-in duration-200 text-left">
+                        <button type="button" onClick={() => setShowSupport(false)} className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"><X size={16}/></button>
+                        <h4 className="text-sm font-bold text-blue-800 dark:text-blue-300 flex items-center gap-1.5 mb-2"><Info size={16}/> Recuperación de Cuenta</h4>
+                        <p className="text-xs text-blue-700 dark:text-blue-200 mb-3">Contacta a soporte técnico para solicitar el restablecimiento de tu contraseña.</p>
+                        <div className="space-y-1.5">
+                            <p className="text-xs font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2"><Phone size={14}/> +52 (71) 2270-0602</p>
+                            <p className="text-xs font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2"><Mail size={14}/> soporte@lunavet.com</p>
+                        </div>
+                    </div>
+                )}
 
-                <Button type="submit" variant="primary" className="w-full flex items-center justify-center gap-2" disabled={isLoading}>
+                <Button type="submit" variant="primary" className="w-full flex items-center justify-center gap-2 mt-2" disabled={isLoading}>
                     {isLoading ? (
                         <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     ) : (

@@ -38,7 +38,7 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg">Dirección</h4>
-                  <p className="text-[#64748B] dark:text-[#94A3B8]">Av. Cuidado Animal #123, Col. Centro, CP 12345</p>
+                  <p className="text-[#64748B] dark:text-[#94A3B8]">Av. Cuidado Animal #123, Col. Centro, CP 50010</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -47,7 +47,7 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg">Teléfono Urgencias</h4>
-                  <p className="text-[#64748B] dark:text-[#94A3B8]">(55) 1234-5678</p>
+                  <p className="text-[#64748B] dark:text-[#94A3B8]">(71) 2270-0602</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

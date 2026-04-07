@@ -75,8 +75,6 @@ export const LoginPage = () => {
 
                         <FormLogin loginData={loginData} />
 
-                        <AuthLink text="¿Problemas para acceder? Contacta a" href="#" align="center" />
-
                     </div>
                 </div>
 
