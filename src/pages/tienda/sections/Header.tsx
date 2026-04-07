@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Sun, Moon, ChevronRight, Menu, User, PawPrint, Package, LogOut, Calendar as CalendarIcon, MapPin, Search } from 'lucide-react';
+import { ShoppingCart, Sun, Moon, ChevronRight, Menu, User, PawPrint, Package, LogOut, Calendar as CalendarIcon, MapPin, Search, CalendarClock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -10,13 +10,15 @@ interface HeaderProps {
   onOpenMascotas: () => void;
   onOpenPedidos: () => void;
   onOpenPerfil: () => void;
+  onOpenAgendarCita: () => void; 
+  onOpenCitas: () => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   isDarkMode, toggleTheme, cartCount, onOpenCart, 
-  onOpenMascotas, onOpenPedidos, onOpenPerfil,
+  onOpenMascotas, onOpenPedidos, onOpenPerfil, onOpenAgendarCita, onOpenCitas,
   searchTerm, setSearchTerm 
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -53,7 +55,9 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           
-          {/* LADO IZQUIERDO: Menú Hamburguesa y Logo (Sin fondo blanco) */}
+          {/* ==========================================
+              LADO IZQUIERDO: Menú Hamburguesa y Logo
+              ========================================== */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <div className="relative" ref={menuRef}>
               <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white p-1.5 hover:bg-white/10 rounded-lg transition-colors flex items-center">
@@ -66,31 +70,35 @@ export const Header: React.FC<HeaderProps> = ({
                     <p className="text-sm font-bold text-[#0F172A] dark:text-white">Módulos</p>
                     <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">Servicios de la clínica</p>
                   </div>
-                  <button onClick={() => { onOpenMascotas(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 flex items-center gap-3">
+                  <button onClick={() => { onOpenMascotas(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-3 transition-colors">
                     <PawPrint size={18} className="text-[#3B82F6]" /> Mis Mascotas
                   </button>
-                  <button onClick={() => { onOpenPedidos(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 flex items-center gap-3">
+                  <button onClick={() => { onOpenPedidos(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-3 transition-colors">
                     <Package size={18} className="text-[#3B82F6]" /> Mis Pedidos
                   </button>
-                  <button onClick={() => { alert('Módulo en construcción.'); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 flex items-center gap-3">
+                  <button onClick={() => { onOpenCitas(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-3 transition-colors">
+                    <CalendarClock size={18} className="text-[#3B82F6]" /> Mis Citas
+                  </button>
+                  <button onClick={() => { onOpenAgendarCita(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-3 transition-colors">
                     <CalendarIcon size={18} className="text-[#3B82F6]" /> Agendar Cita
                   </button>
                   <div className="h-px bg-black/5 dark:bg-white/5 my-1 w-full"></div>
-                  <div className="px-4 py-3 text-xs font-bold text-[#64748B] flex items-center gap-2">
+                  <div className="px-4 py-3 text-xs font-bold text-[#64748B] dark:text-[#94A3B8] flex items-center gap-2">
                     <MapPin size={16} className="text-emerald-500" /> Recoger en Clínica Matriz
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-              {/* Logo sin el círculo blanco */}
+            <div className="flex items-center gap-2 cursor-pointer ml-1 sm:ml-0" onClick={() => navigate('/')}>
               <img src="/Logo_LunaVet.png" alt="LunaVet Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-md" onError={(e: any) => { e.target.onerror = null; e.target.src = "https://cdn-icons-png.flaticon.com/512/1864/1864509.png"; }} />
               <span className="hidden md:block font-bold text-2xl tracking-tight text-white drop-shadow-sm">LunaVet</span>
             </div>
           </div>
 
-          {/* CENTRO: Buscador Dinámico (Vivo) */}
+          {/* ==========================================
+              CENTRO: Buscador Dinámico
+              ========================================== */}
           <div className="flex-1 max-w-xl flex relative mx-2">
             <input 
               type="text" 
@@ -104,14 +112,16 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* LADO DERECHO: Tema, Perfil y Carrito */}
+          {/* ==========================================
+              LADO DERECHO: Tema, Perfil y Carrito
+              ========================================== */}
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <button onClick={toggleTheme} className="text-white/90 hover:text-white p-1.5 sm:p-2 hidden sm:block">
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
             
             <div className="relative" ref={dropdownRef}>
-              <div className="hidden lg:flex flex-col items-start cursor-pointer text-white/90 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+              <div className="hidden lg:flex flex-col items-start cursor-pointer text-white/90 hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition-colors" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
                 <span className="text-[10px] uppercase tracking-wide opacity-80 font-bold">Bienvenido</span>
                 <span className="text-sm font-bold flex items-center gap-1">{nombreCliente} <ChevronRight size={14} className={isDropdownOpen ? 'rotate-90' : ''}/></span>
               </div>
@@ -124,11 +134,14 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="px-4 py-3 border-b border-black/5 dark:border-white/5 mb-1">
                     <p className="text-sm font-bold text-[#0F172A] dark:text-white">Mi Cuenta</p>
                   </div>
-                  <button onClick={() => { onOpenPerfil(); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F172A] dark:text-white hover:bg-black/5 flex items-center gap-3">
+                  <button onClick={() => { onOpenPerfil(); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F172A] dark:text-white hover:bg-black/5 flex items-center gap-3 transition-colors">
                     <User size={16} className="text-[#64748B]" /> Mi Perfil
                   </button>
+                  <button onClick={() => { onOpenCitas(); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm font-medium text-[#0F172A] dark:text-white hover:bg-black/5 flex items-center gap-3 transition-colors">
+                    <CalendarClock size={16} className="text-[#64748B]" /> Mis Citas
+                  </button>
                   <div className="h-px bg-black/5 dark:bg-white/5 my-1 w-full"></div>
-                  <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-sm font-bold text-rose-500 hover:bg-rose-50 flex items-center gap-3">
+                  <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-sm font-bold text-rose-500 hover:bg-rose-50 flex items-center gap-3 transition-colors">
                     <LogOut size={16} /> Cerrar Sesión
                   </button>
                 </div>

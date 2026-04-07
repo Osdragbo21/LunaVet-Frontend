@@ -16,6 +16,8 @@ import { CartPanel } from './components/CartPanel';
 import { MisMascotasModal } from './components/MisMascotasModal';
 import { MisPedidosModal } from './components/MisPedidosModal';
 import { MiPerfilModal } from './components/MiPerfilModal';
+import { AgendarCitaModal } from './components/AgendarCitaModal'; 
+import { MisCitasModal } from './components/MisCitasModal'; // <-- NUEVA IMPORTACIÓN
 
 export const TiendaPage = () => {
   const { 
@@ -28,8 +30,10 @@ export const TiendaPage = () => {
     isMascotasOpen, setIsMascotasOpen,
     isPedidosOpen, setIsPedidosOpen,
     isPerfilOpen, setIsPerfilOpen,
-    searchTerm, setSearchTerm,           // Nuevos estados
-    activeCategory, setActiveCategory    // Nuevos estados
+    isAgendarCitaOpen, setIsAgendarCitaOpen, 
+    isCitasOpen, setIsCitasOpen, // <-- ESTADO EXTRAÍDO
+    searchTerm, setSearchTerm,           
+    activeCategory, setActiveCategory    
   } = useTienda();
 
   return (
@@ -44,8 +48,10 @@ export const TiendaPage = () => {
           onOpenMascotas={() => setIsMascotasOpen(true)}
           onOpenPedidos={() => setIsPedidosOpen(true)}
           onOpenPerfil={() => setIsPerfilOpen(true)}
-          searchTerm={searchTerm}              // Pasamos buscador
-          setSearchTerm={setSearchTerm}        // Pasamos buscador
+          onOpenAgendarCita={() => setIsAgendarCitaOpen(true)} 
+          onOpenCitas={() => setIsCitasOpen(true)} // <-- PASADO AL HEADER
+          searchTerm={searchTerm}              
+          setSearchTerm={setSearchTerm}        
         />
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
@@ -84,6 +90,10 @@ export const TiendaPage = () => {
         <MisMascotasModal isOpen={isMascotasOpen} onClose={() => setIsMascotasOpen(false)} />
         <MisPedidosModal isOpen={isPedidosOpen} onClose={() => setIsPedidosOpen(false)} />
         <MiPerfilModal isOpen={isPerfilOpen} onClose={() => setIsPerfilOpen(false)} />
+        <AgendarCitaModal isOpen={isAgendarCitaOpen} onClose={() => setIsAgendarCitaOpen(false)} />
+        
+        {/* NUEVO MODAL: Mis Citas */}
+        <MisCitasModal isOpen={isCitasOpen} onClose={() => setIsCitasOpen(false)} />
       </div>
     </div>
   );

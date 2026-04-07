@@ -23,9 +23,6 @@ const GET_PERFIL_CLIENTE = gql`
   }
 `;
 
-// ==========================================
-// INTERFACES PARA TYPESCRIPT
-// ==========================================
 export interface CartItem {
   id_producto: number;
   nombre: string;
@@ -59,11 +56,14 @@ export const useTienda = () => {
   const [successOrder, setSuccessOrder] = useState<number | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Estados de los modales del portal del cliente
   const [isMascotasOpen, setIsMascotasOpen] = useState(false);
   const [isPedidosOpen, setIsPedidosOpen] = useState(false);
   const [isPerfilOpen, setIsPerfilOpen] = useState(false);
+  const [isAgendarCitaOpen, setIsAgendarCitaOpen] = useState(false);
+  const [isCitasOpen, setIsCitasOpen] = useState(false);
 
-  // NUEVOS ESTADOS PARA BUSCADOR Y CATEGORÍAS
+  // Estados para el buscador y las categorías (Catálogo)
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
 
@@ -155,7 +155,7 @@ export const useTienda = () => {
         variables: {
           input: {
             cliente_id: miPerfil.id_cliente, 
-            empleado_id: 1,
+            empleado_id: 1, // Se asigna al empleado general o sistema
             metodo_pago: 'Efectivo', 
             tipo_venta: 'Online',
             estado_pedido: 'Pendiente de pago',
@@ -167,7 +167,7 @@ export const useTienda = () => {
 
       if (data?.createVenta) {
         setSuccessOrder(data.createVenta.id_venta);
-        setCart([]);
+        setCart([]); // Vaciamos el carrito tras una compra exitosa
       }
     } catch (err: any) {
       console.error("Error en checkout:", err);
@@ -186,7 +186,8 @@ export const useTienda = () => {
     isMascotasOpen, setIsMascotasOpen,
     isPedidosOpen, setIsPedidosOpen,
     isPerfilOpen, setIsPerfilOpen,
-    // EXPORTAMOS LOS NUEVOS ESTADOS
+    isAgendarCitaOpen, setIsAgendarCitaOpen,
+    isCitasOpen, setIsCitasOpen,
     searchTerm, setSearchTerm,
     activeCategory, setActiveCategory
   };
