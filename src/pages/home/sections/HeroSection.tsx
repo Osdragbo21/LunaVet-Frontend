@@ -33,10 +33,6 @@ export const HeroSection = () => {
             <p className="text-lg text-[#64748B] dark:text-[#94A3B8] mb-8 font-medium">
               En LunaVet cultivamos la salud, el bienestar y el amor por los animales a través de medicina veterinaria de excelencia y trato humano.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="primary">Agendar Cita</Button>
-              <Button variant="outline">Conócenos</Button>
-            </div>
           </div>
         </div>
 

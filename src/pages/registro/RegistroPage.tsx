@@ -5,8 +5,8 @@ import { Button } from '../../components/ui/Button';
 import { useRegistro } from './hooks/useRegistro';
 
 export const RegistroPage = () => {
-    // Estado para el modo oscuro
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    // Estado para el modo oscuro con persistencia
+    const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('lunaVetTheme') === 'dark');
 
     const {
         formData, handleChange,
@@ -15,12 +15,14 @@ export const RegistroPage = () => {
         handleRegistro
     } = useRegistro();
 
-    // Efecto para aplicar la clase 'dark' al HTML
+    // Efecto para aplicar la clase 'dark' al HTML y guardar preferencia
     useEffect(() => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
+            localStorage.setItem('lunaVetTheme', 'dark');
         } else {
             document.documentElement.classList.remove('dark');
+            localStorage.setItem('lunaVetTheme', 'light');
         }
     }, [isDarkMode]);
 

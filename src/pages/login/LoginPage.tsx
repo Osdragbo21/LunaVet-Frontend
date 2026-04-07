@@ -9,14 +9,16 @@ import { FormLogin } from './components/FormLogin';
 import { AuthLink } from './components/AuthLink';
 
 export const LoginPage = () => {
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('lunaVetTheme') === 'dark');
     const loginData = useLogin();
 
     useEffect(() => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
+            localStorage.setItem('lunaVetTheme', 'dark');
         } else {
             document.documentElement.classList.remove('dark');
+            localStorage.setItem('lunaVetTheme', 'light');
         }
     }, [isDarkMode]);
 
