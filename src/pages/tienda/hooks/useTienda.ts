@@ -24,7 +24,7 @@ const GET_PERFIL_CLIENTE = gql`
 `;
 
 // ==========================================
-// INTERFACES PARA TYPESCRIPT (ESTO QUITA LAS LÍNEAS ROJAS)
+// INTERFACES PARA TYPESCRIPT
 // ==========================================
 export interface CartItem {
   id_producto: number;
@@ -61,6 +61,7 @@ export const useTienda = () => {
 
   const [isMascotasOpen, setIsMascotasOpen] = useState(false);
   const [isPedidosOpen, setIsPedidosOpen] = useState(false);
+  const [isPerfilOpen, setIsPerfilOpen] = useState(false); // <-- NUEVO ESTADO PARA EL PERFIL
 
   const apolloClient = useApolloClient();
 
@@ -106,7 +107,6 @@ export const useTienda = () => {
   const cartTotal = cart.reduce((acc, item) => acc + (item.precio_venta * item.cantidad), 0);
   const cartCount = cart.reduce((acc, item) => acc + item.cantidad, 0);
 
-  // AQUÍ LE PASAMOS LA INTERFAZ A LA MUTACIÓN
   const [createVenta, { loading: isCheckingOut, error: checkoutError }] = useMutation<CreateVentaResponse>(CREATE_VENTA, {
     refetchQueries: ['GetProductosTienda', 'GetMisPedidosWeb']
   });
@@ -124,13 +124,11 @@ export const useTienda = () => {
         return;
       }
 
-      // AQUÍ LE PASAMOS LA INTERFAZ A LA QUERY
       const { data: perfilData } = await apolloClient.query<GetPerfilClienteResponse>({ 
         query: GET_PERFIL_CLIENTE, 
         fetchPolicy: 'network-only' 
       });
       
-      // VALIDACIÓN PARA EVITAR EL UNDEFINED
       if (!perfilData || !perfilData.clientes) {
         setLocalError("Hubo un problema al cargar tu perfil.");
         return;
@@ -156,7 +154,7 @@ export const useTienda = () => {
             empleado_id: 1,
             metodo_pago: 'Efectivo', 
             tipo_venta: 'Online',
-            estado_pedido: 'Pendiente de pago', // Se mantiene así para no romper el Backend ni el Kanban
+            estado_pedido: 'Pendiente de pago',
             total: cartTotal,
             detalles_productos
           }
@@ -182,6 +180,7 @@ export const useTienda = () => {
     checkoutError: localError ? { message: localError } : checkoutError,
     successOrder, setSuccessOrder,
     isMascotasOpen, setIsMascotasOpen,
-    isPedidosOpen, setIsPedidosOpen
+    isPedidosOpen, setIsPedidosOpen,
+    isPerfilOpen, setIsPerfilOpen // <-- EXPORTAMOS EL NUEVO ESTADO
   };
 };

@@ -3,7 +3,7 @@ import React from 'react';
 // Hooks
 import { useTienda } from './hooks/useTienda';
 
-// Secciones (IMPORTACIONES RESTAURADAS)
+// Secciones
 import { Header } from './sections/Header';
 import { HeroBanner } from './sections/HeroBanner';
 import { BenefitsSection } from './sections/BenefitsSection';
@@ -15,6 +15,7 @@ import { Footer } from './sections/Footer';
 import { CartPanel } from './components/CartPanel';
 import { MisMascotasModal } from './components/MisMascotasModal';
 import { MisPedidosModal } from './components/MisPedidosModal';
+import { MiPerfilModal } from './components/MiPerfilModal'; // <-- NUEVA IMPORTACIÓN
 
 export const TiendaPage = () => {
   const { 
@@ -25,7 +26,8 @@ export const TiendaPage = () => {
     checkout, isCheckingOut, checkoutError,
     successOrder, setSuccessOrder,
     isMascotasOpen, setIsMascotasOpen,
-    isPedidosOpen, setIsPedidosOpen
+    isPedidosOpen, setIsPedidosOpen,
+    isPerfilOpen, setIsPerfilOpen // <-- SACAMOS EL ESTADO
   } = useTienda();
 
   return (
@@ -39,6 +41,7 @@ export const TiendaPage = () => {
           onOpenCart={() => setIsCartOpen(true)}
           onOpenMascotas={() => setIsMascotasOpen(true)}
           onOpenPedidos={() => setIsPedidosOpen(true)}
+          onOpenPerfil={() => setIsPerfilOpen(true)} // <-- LE PASAMOS LA FUNCIÓN AL HEADER
         />
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
@@ -74,6 +77,12 @@ export const TiendaPage = () => {
         <MisPedidosModal 
           isOpen={isPedidosOpen} 
           onClose={() => setIsPedidosOpen(false)} 
+        />
+
+        {/* NUEVO MODAL */}
+        <MiPerfilModal 
+          isOpen={isPerfilOpen}
+          onClose={() => setIsPerfilOpen(false)}
         />
       </div>
     </div>
