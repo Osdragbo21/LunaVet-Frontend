@@ -7,19 +7,17 @@ import { Button } from '../../../components/ui/Button';
 export const FormLogin = ({ loginData }: { loginData: any }) => {
     const {
         username, setUsername,
-        passwordHash, setPasswordHash,
+        password, setPassword, // <-- CORRECCIÓN AQUÍ
         showPassword, togglePassword,
         isLoading, handleLogin,
         errorMsg 
     } = loginData;
 
-    // Estado para la ventanita de soporte
     const [showSupport, setShowSupport] = useState(false);
 
     return (
         <div className="relative w-full">
 
-            {/* Sistema de Partículas */}
             <div className="absolute inset-0 pointer-events-none z-0">
                 <div className="absolute -top-8 -left-8 w-6 h-6 bg-[#3B82F6]/40 dark:bg-[#3B82F6]/60 rounded-full blur-md animate-pulse" style={{ animationDuration: '3s' }}></div>
                 <div className="absolute top-1/4 -right-10 w-4 h-4 bg-[#3B82F6]/50 dark:bg-[#3B82F6]/70 rounded-full blur-sm animate-ping" style={{ animationDuration: '4s' }}></div>
@@ -33,7 +31,6 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                 
                 <form onSubmit={handleLogin} className="space-y-6">
                 
-                {/* Alerta de Error de Autenticación */}
                 {errorMsg && (
                     <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-[10px] text-sm font-bold text-center">
                         {errorMsg}
@@ -51,7 +48,7 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            placeholder="ej: juan.perez11"
+                            placeholder="ej: admin.vet"
                             className="pl-11"
                             required
                         />
@@ -72,8 +69,8 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                         <Input 
                             id="password"
                             type={showPassword ? "text" : "password"}
-                            value={passwordHash}
-                            onChange={(e) => setPasswordHash(e.target.value)}
+                            value={password} // <-- CORRECCIÓN AQUÍ
+                            onChange={(e) => setPassword(e.target.value)} // <-- CORRECCIÓN AQUÍ (Línea 76 aprox)
                             placeholder="••••••••"
                             className="pl-11 pr-12"
                             required
@@ -86,14 +83,13 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                     </div>
                 </div>
 
-                {/* Info de Soporte Técnico */}
                 {showSupport && (
                     <div className="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl relative animate-in fade-in zoom-in duration-200 text-left">
                         <button type="button" onClick={() => setShowSupport(false)} className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"><X size={16}/></button>
                         <h4 className="text-sm font-bold text-blue-800 dark:text-blue-300 flex items-center gap-1.5 mb-2"><Info size={16}/> Recuperación de Cuenta</h4>
                         <p className="text-xs text-blue-700 dark:text-blue-200 mb-3">Contacta a soporte técnico para solicitar el restablecimiento de tu contraseña.</p>
                         <div className="space-y-1.5">
-                            <p className="text-xs font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2"><Phone size={14}/> +52 (71) 2270-0602</p>
+                            <p className="text-xs font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2"><Phone size={14}/> +52 (55) 1234-5678</p>
                             <p className="text-xs font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2"><Mail size={14}/> soporte@lunavet.com</p>
                         </div>
                     </div>
@@ -110,7 +106,6 @@ export const FormLogin = ({ loginData }: { loginData: any }) => {
                     )}
                 </Button>
 
-                {/* Enlace para crear cuenta */}
                 <div className="pt-2 text-center text-sm text-[#64748B] dark:text-[#94A3B8]">
                     ¿No tienes cuenta?{' '}
                     <a 
