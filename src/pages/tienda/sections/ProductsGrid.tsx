@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Loader2, PackageOpen, SearchX } from 'lucide-react';
+import { Heart, Loader2, SearchX } from 'lucide-react';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client/core';
 
@@ -41,8 +41,21 @@ export const ProductsGrid: React.FC<ProductsGridProps> = ({ addToCart, searchTer
     // 1. Debe estar activo en la tienda
     if (!p.activo_en_tienda) return false;
 
-    // 2. Filtro de Categoría
-    const matchCategory = activeCategory === 'Todos' || p.categoria === activeCategory;
+    // 2. Filtro de Categoría con MAPEO INTELIGENTE
+    // Traduce la palabra bonita de la UI a la palabra técnica de la Base de Datos
+    const mapCategoriaUItoDB = (catUI: string) => {
+      const catMap: Record<string, string> = {
+        'Alimentos': 'Alimento',
+        'Farmacia': 'Medicamento',
+        'Accesorios': 'Accesorio'
+      };
+      return catMap[catUI] || catUI;
+    };
+
+    const catFiltro = mapCategoriaUItoDB(activeCategory);
+    
+    // Verificamos si coincide con el mapeo o con el texto exacto (por seguridad)
+    const matchCategory = activeCategory === 'Todos' || p.categoria === catFiltro || p.categoria === activeCategory;
 
     // 3. Filtro de Búsqueda de Texto
     const term = searchTerm.toLowerCase();
