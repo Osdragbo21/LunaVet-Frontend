@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from '@apollo/client/react';
-import { gql } from '@apollo/client/core';
+// IMPORTACIÓN CORREGIDA A LA REGLA ESTRICTA DE APOLLO
+import { gql } from '@apollo/client';
 
 // Mutación estructurada exactamente como la pide el Backend
 const LOGIN_MUTATION = gql`
@@ -13,6 +14,7 @@ const LOGIN_MUTATION = gql`
         username
         activo
         rol {
+          id_rol
           nombre
         }
       }
@@ -24,6 +26,7 @@ const LOGIN_MUTATION = gql`
 // INTERFACES PARA TYPESCRIPT
 // ==========================================
 interface Rol {
+  id_rol: number;
   nombre: string;
 }
 
@@ -73,13 +76,15 @@ export const useLogin = () => {
                 localStorage.setItem('token', data.login.access_token);
                 localStorage.setItem('user', JSON.stringify(data.login.usuario));
                 
-                const rolNombre = data.login.usuario.rol.nombre;
+                // 2. Semáforo de Redirección basado en el Rol (RBAC Seguro)
+                const rolId = Number(data.login.usuario.rol.id_rol);
                 
-                // 2. Semáforo de Redirección basado en el Rol
-                if (rolNombre === 'Cliente') {
-                    navigate('/tienda'); 
+                if (rolId === 1) {
+                    navigate('/dashboard'); // Si es Admin
+                } else if (rolId === 2) {
+                    navigate('/panel-clinico'); // Si es Empleado/Veterinario
                 } else {
-                    navigate('/dashboard'); 
+                    navigate('/tienda'); // Si es Cliente (3 o cualquier otro)
                 }
             }
         } catch (err: any) {

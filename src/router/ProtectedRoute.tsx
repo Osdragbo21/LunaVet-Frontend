@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-// Hook auxiliar para leer la sesión actual desde localStorage
+// Hook auxiliar para leer la sesión actual desde localStorage de forma segura
 const useAuth = () => {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
@@ -28,12 +28,17 @@ export const PublicRoute = () => {
     const { isAuthenticated, user } = useAuth();
 
     if (isAuthenticated && user) {
+        // FORZAMOS LA CONVERSIÓN A NÚMERO para evitar errores de "2" vs 2
+        const rolId = Number(user.rol?.id_rol || user.rol?.id || user.rol_id);
         const rolNombre = String(user.rol?.nombre || '').toLowerCase();
         
-        if (rolNombre === 'cliente') {
+        // RBAC: Redirección automática al iniciar sesión según su Nivel
+        if (rolId === 3 || rolNombre === 'cliente') {
             return <Navigate to="/tienda" replace />;
+        } else if (rolId === 2 || ['empleado', 'veterinario', 'trabajador', 'medico', 'recepcionista'].includes(rolNombre)) {
+            return <Navigate to="/panel-clinico" replace />;
         } else {
-            return <Navigate to="/dashboard" replace />;
+            return <Navigate to="/dashboard" replace />; // Admin (1) por defecto
         }
     }
 
@@ -41,7 +46,7 @@ export const PublicRoute = () => {
 };
 
 // ==========================================
-// 🔒 GUARDIA 2: Rutas Privadas (Dashboard, Tienda)
+// 🔒 GUARDIA 2: Rutas Privadas (Dashboard, Tienda, Panel)
 // ==========================================
 interface ProtectedRouteProps {
     allowedRoles: string[];
@@ -51,43 +56,60 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
     const { isAuthenticated, user } = useAuth();
     const location = useLocation();
 
-    // 1. Si no tiene sesión, pa' fuera (al login)
     if (!isAuthenticated || !user) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // 2. Normalizamos el rol a minúsculas
+    // NORMALIZACIÓN DE DATOS (El secreto para que no falle)
+    const rolId = Number(user.rol?.id_rol || user.rol?.id || user.rol_id);
     const userRole = String(user.rol?.nombre || '').toLowerCase();
-    
-    // Normalizamos la lista de roles permitidos
     const normalizedAllowed = allowedRoles.map(r => r.toLowerCase());
     
-    // Agregamos alias por si en la BD se guardó diferente
-    if (normalizedAllowed.includes('administrador')) normalizedAllowed.push('admin');
-    if (normalizedAllowed.includes('empleado')) normalizedAllowed.push('veterinario');
+    let hasAccess = false;
 
-    // 3. Verificamos si el rol actual está en la lista de permitidos
-    if (!normalizedAllowed.includes(userRole)) {
+    // 1. Verificamos si es ADMINISTRADOR (Nivel 1)
+    if (normalizedAllowed.includes('administrador') || normalizedAllowed.includes('admin')) {
+        if (rolId === 1 || userRole === 'administrador' || userRole === 'admin') hasAccess = true;
+    }
+    
+    // 2. Verificamos si es TRABAJADOR OPERATIVO (Nivel 2)
+    if (normalizedAllowed.includes('empleado') || normalizedAllowed.includes('trabajador') || normalizedAllowed.includes('veterinario')) {
+        if (rolId === 2 || ['empleado', 'veterinario', 'trabajador', 'medico', 'recepcionista'].includes(userRole)) hasAccess = true;
+    }
+
+    // 3. Verificamos si es CLIENTE (Nivel 3)
+    if (normalizedAllowed.includes('cliente')) {
+        if (rolId === 3 || userRole === 'cliente') hasAccess = true;
+    }
+
+    // SI NO TIENE ACCESO A LA RUTA SOLICITADA -> EXPULSIÓN SEGURA
+    if (!hasAccess) {
         
-        // Si el usuario es cliente, a su tienda
-        if (userRole === 'cliente') {
-            if (location.pathname === '/tienda') return <Outlet />;
+        // Si es Cliente, lo regresamos a su Tienda
+        if (rolId === 3 || userRole === 'cliente') {
+            if (location.pathname.startsWith('/tienda')) return <Outlet />;
             return <Navigate to="/tienda" replace />;
         }
         
-        // ¡SOLUCIÓN DE LA PANTALLA BLANCA!
-        // Si no tiene permisos y ya está intentando cargar el dashboard, no lo rebotamos al dashboard de nuevo.
-        // Significa que su rol en la BD es algo raro. Le cerramos sesión y lo mandamos al login.
-        if (location.pathname === '/dashboard') {
-            console.error(`Bloqueo de seguridad: El rol '${user.rol?.nombre}' no tiene acceso al Dashboard.`);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            return <Navigate to="/login" replace />;
+        // Si es Trabajador, lo regresamos a su Panel Clínico
+        if (rolId === 2 || ['empleado', 'veterinario', 'trabajador', 'medico', 'recepcionista'].includes(userRole)) {
+            // Usamos startsWith para evitar bucles infinitos de redirección
+            if (location.pathname.startsWith('/panel-clinico')) return <Outlet />;
+            return <Navigate to="/panel-clinico" replace />;
         }
-        
-        return <Navigate to="/dashboard" replace />;
+
+        // Si es Admin, lo regresamos a su Dashboard
+        if (rolId === 1 || userRole === 'administrador') {
+            if (location.pathname.startsWith('/dashboard')) return <Outlet />;
+            return <Navigate to="/dashboard" replace />;
+        }
+
+        // Si llega aquí, los datos están corruptos. Destruimos la sesión.
+        console.error(`Bloqueo de seguridad RBAC: Rol desconocido (ID: ${rolId}, Nombre: ${userRole}).`);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return <Navigate to="/login" replace />;
     }
 
-    // 4. Todo en orden, puede pasar
-    return <Outlet />; 
+    return <Outlet />;
 };

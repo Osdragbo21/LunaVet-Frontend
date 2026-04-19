@@ -7,53 +7,49 @@ import { DashboardPage } from "../pages/dashboard/DashboardPage";
 import { TiendaPage } from "../pages/tienda/TiendaPage";
 import { RegistroPage } from "../pages/registro/RegistroPage";
 
+// NUEVA VISTA: Panel Clínico para Operativos (Empleados)
+import { PortalOperativoPage } from "../pages/PortalOperativo/PortalOperativoPage";
+
 // Importamos los Guardianes de Rutas
 import { ProtectedRoute, PublicRoute } from "./ProtectedRoute";
 
 export const appRouter = createBrowserRouter([
-    // 🌍 RUTA LIBRE: El Landing Page es para todos
+    // 🌍 RUTA LIBRE: Landing Page
     {
         path: "/",
         element: <HomePage />,
     },
 
     // 🔓 RUTAS PÚBLICAS: Solo para usuarios NO logueados
-    // (Si alguien con sesión intenta entrar a /login, PublicRoute lo saca a su panel)
     {
         element: <PublicRoute />,
         children: [
-            {
-                path: "/login",
-                element: <LoginPage />,
-            },
-            {
-                path: "/registro",
-                element: <RegistroPage />,
-            },
+            { path: "/login", element: <LoginPage /> },
+            { path: "/registro", element: <RegistroPage /> },
         ]
     },
 
-    // 🔒 RUTAS PRIVADAS: ZONA DE STAFF (Administradores y Empleados)
-    // (Si no están logueados o son clientes, ProtectedRoute los expulsa)
+    // 🔒 ZONA ADMINISTRADOR (Solo Administrador, le quitamos 'Empleado')
     {
-        element: <ProtectedRoute allowedRoles={['Administrador', 'Empleado']} />,
+        element: <ProtectedRoute allowedRoles={['Administrador', 'Admin']} />,
         children: [
-            {
-                path: "/dashboard",
-                element: <DashboardPage />,
-            }
+            { path: "/dashboard", element: <DashboardPage /> }
         ]
     },
 
-    // 🔒 RUTAS PRIVADAS: ZONA DE CLIENTES
-    // (Solo clientes pueden ver su panel de compras/tienda)
+    // 🔒 ZONA TRABAJADOR / DOCTOR (Aquí pertenece el empleado)
+    {
+        element: <ProtectedRoute allowedRoles={['Empleado', 'Veterinario', 'Trabajador']} />,
+        children: [
+            { path: "/panel-clinico", element: <PortalOperativoPage /> }
+        ]
+    },
+
+    // 🔒 ZONA CLIENTE
     {
         element: <ProtectedRoute allowedRoles={['Cliente']} />,
         children: [
-            {
-                path: "/tienda",
-                element: <TiendaPage />,
-            }
+            { path: "/tienda", element: <TiendaPage /> }
         ]
-    },
+    }
 ]);
