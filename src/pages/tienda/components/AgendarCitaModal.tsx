@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Calendar as CalendarIcon, Clock, FileText, Loader2, User, PawPrint, CheckCircle, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Calendar as CalendarIcon, Clock, FileText, Loader2, User, PawPrint, CheckCircle, AlertTriangle, HeartPulse } from 'lucide-react';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { Label } from '../../../components/ui/Label';
@@ -83,6 +83,7 @@ export const AgendarCitaModal = ({ isOpen, onClose }: AgendarCitaModalProps) => 
     motivo: ''
   });
   
+  const [isUrgencia, setIsUrgencia] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
 
@@ -100,12 +101,74 @@ export const AgendarCitaModal = ({ isOpen, onClose }: AgendarCitaModalProps) => 
   const miPerfil = data?.clientes.find(c => c.usuario?.id_usuario === currentUser?.id_usuario);
   const misMascotas = miPerfil?.pacientes || [];
 
-  // Filtrar solo veterinarios disponibles (Ej. excluyendo recepcionistas o limpieza si fuera necesario, aquí mostramos todos los aptos)
+  // Filtrar solo veterinarios disponibles
   const veterinarios = data?.empleados.filter(e => e.puesto.includes('Veterinario') || e.puesto.includes('Estilista')) || [];
+
+  // --- LÓGICA DE FECHAS Y HORARIOS ---
+
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayString = getTodayString();
+
+  const getDayOfWeek = (dateString: string) => {
+    if (!dateString) return -1;
+    const [year, month, day] = dateString.split('-');
+    return new Date(Number(year), Number(month) - 1, Number(day)).getDay();
+  };
+
+  const handleFechaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    const dayOfWeek = getDayOfWeek(selectedDate);
+
+    if (!isUrgencia && dayOfWeek === 0) {
+      setCustomError('Los domingos la clínica está cerrada. Por favor selecciona otro día o márcalo como Urgencia.');
+      setFormData(prev => ({ ...prev, fecha: '', hora: '' }));
+      return;
+    }
+
+    setCustomError(null);
+    setFormData(prev => ({ ...prev, fecha: selectedDate, hora: '' }));
+  };
+
+  const handleUrgenciaToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setIsUrgencia(checked);
+    setCustomError(null);
+    
+    if (!checked && getDayOfWeek(formData.fecha) === 0) {
+      setFormData(prev => ({ ...prev, fecha: '', hora: '' }));
+      setCustomError('Se desactivó la Urgencia. La fecha seleccionada era Domingo y la clínica está cerrada.');
+    } else {
+      setFormData(prev => ({ ...prev, hora: '' }));
+    }
+  };
+
+  const getAvailableHours = () => {
+    if (isUrgencia) {
+      return Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+    }
+    
+    const dayOfWeek = getDayOfWeek(formData.fecha);
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) { 
+      return Array.from({ length: 12 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
+    }
+    if (dayOfWeek === 6) { 
+      return Array.from({ length: 8 }, (_, i) => `${(i + 9).toString().padStart(2, '0')}:00`);
+    }
+    return [];
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  // --- SUBMIT Y CIERRE ---
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +190,7 @@ export const AgendarCitaModal = ({ isOpen, onClose }: AgendarCitaModalProps) => 
             fecha_hora: fechaHoraLocal.toISOString(),
             motivo: formData.motivo.trim(),
             estado: 'Pendiente',
-            origen_cita: 'Web' // <-- Forzado como Web
+            origen_cita: isUrgencia ? 'Urgencia' : 'Web' // Aplicamos Urgencia o lo dejamos en Web
           }
         }
       });
@@ -135,19 +198,25 @@ export const AgendarCitaModal = ({ isOpen, onClose }: AgendarCitaModalProps) => 
       setSuccessMsg(true);
       setTimeout(() => {
         setSuccessMsg(false);
+        setIsUrgencia(false);
         setFormData({ paciente_id: '', empleado_id: '', fecha: '', hora: '', motivo: '' });
         onClose();
       }, 2000);
 
     } catch (err: any) {
       console.error(err);
-      setCustomError(err.message || "Ocurrió un error al agendar la cita.");
+      // Implementación del parseo limpio de GraphQL Errors
+      const mensajeError = err.graphQLErrors?.[0]?.message 
+                        || err.message 
+                        || "Ocurrió un error al agendar la cita.";
+      setCustomError(mensajeError);
     }
   };
 
   const handleClose = () => {
     setCustomError(null);
     setSuccessMsg(false);
+    setIsUrgencia(false);
     setFormData({ paciente_id: '', empleado_id: '', fecha: '', hora: '', motivo: '' });
     onClose();
   };
@@ -194,7 +263,13 @@ export const AgendarCitaModal = ({ isOpen, onClose }: AgendarCitaModalProps) => 
           ) : (
             <form id="agendarWebForm" onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
               
-              {customError && <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 rounded-lg text-sm font-medium flex gap-2"><AlertTriangle size={18} className="shrink-0 mt-0.5"/> <p>{customError}</p></div>}
+              {/* Alerta de Error Actualizada */}
+              {customError && (
+                <div className="p-4 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl text-sm font-bold flex gap-3 items-start border border-rose-200 dark:border-rose-500/20">
+                  <AlertTriangle size={20} className="shrink-0 mt-0.5" />
+                  <p>{customError}</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
@@ -209,36 +284,51 @@ export const AgendarCitaModal = ({ isOpen, onClose }: AgendarCitaModalProps) => 
                   </select>
                 </div>
 
-                {/* Fecha y Hora */}
+                {/* Fecha */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2"><CalendarIcon size={16}/> Fecha Deseada</Label>
                   <input 
                     type="date" 
                     name="fecha" 
                     value={formData.fecha} 
-                    onChange={handleChange}
+                    onChange={handleFechaChange}
                     onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
                     onKeyDown={(e) => e.preventDefault()}
-                    min={new Date().toISOString().split('T')[0]} // No permitir fechas pasadas
+                    min={todayString}
                     required 
                     disabled={saving}
                     className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:ring-2 focus:ring-[#3B82F6]/50 cursor-pointer select-none dark:[color-scheme:dark] outline-none" 
                   />
                 </div>
                 
+                {/* Hora Dinámica */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2"><Clock size={16}/> Hora Aproximada</Label>
-                  <input 
-                    type="time" 
+                  <select 
                     name="hora" 
                     value={formData.hora} 
                     onChange={handleChange}
-                    onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-                    onKeyDown={(e) => e.preventDefault()}
                     required 
-                    disabled={saving}
-                    className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:ring-2 focus:ring-[#3B82F6]/50 cursor-pointer select-none dark:[color-scheme:dark] outline-none" 
-                  />
+                    disabled={saving || !formData.fecha}
+                    className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:ring-2 focus:ring-[#3B82F6]/50 appearance-none disabled:opacity-50 disabled:cursor-not-allowed outline-none"
+                  >
+                    <option value="">{formData.fecha ? 'Selecciona una hora...' : 'Primero elige la fecha'}</option>
+                    {getAvailableHours().map((h) => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Toggle Urgencia 24/7 Destacado */}
+                <div className="md:col-span-2 bg-rose-50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/20 p-4 rounded-xl flex items-center justify-between">
+                  <div>
+                    <h4 className="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-2"><HeartPulse size={18}/> Es una Urgencia (24/7)</h4>
+                    <p className="text-xs text-rose-500/80 dark:text-rose-400/80 mt-1">Ignora los horarios regulares de la clínica.</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={isUrgencia} onChange={handleUrgenciaToggle} disabled={saving} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-rose-200 peer-focus:outline-none rounded-full peer dark:bg-rose-900 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-rose-500"></div>
+                  </label>
                 </div>
 
                 {/* Especialista */}

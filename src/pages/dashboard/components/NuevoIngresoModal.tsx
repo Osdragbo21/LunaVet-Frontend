@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Activity, FileText, Loader2, PawPrint, Calendar as CalendarIcon, CheckCircle, User } from 'lucide-react';
+import { X, Activity, FileText, Loader2, PawPrint, Calendar as CalendarIcon, CheckCircle, User, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Label } from '../../../components/ui/Label';
 import { Textarea } from '../../../components/ui/Textarea';
@@ -62,39 +62,56 @@ interface NuevoIngresoModalProps {
 }
 
 export const NuevoIngresoModal: React.FC<NuevoIngresoModalProps> = ({ isOpen, onClose }) => {
+  // SEPARAMOS LA FECHA Y LA HORA PARA LA UI
   const [formData, setFormData] = useState({
     paciente_id: '',
-    empleado_id: '', // NUEVO CAMPO AGREGADO
-    fecha_ingreso: '',
+    empleado_id: '',
+    fecha: '',
+    hora: '',
     motivo: ''
   });
 
   const { data, loading: loadingDatos } = useQuery<GetDatosIngresoResponse>(GET_DATOS_INGRESO, { skip: !isOpen });
 
-  const [createHospitalizacion, { loading: saving, error: saveError }] = useMutation(CREATE_HOSPITALIZACION, {
+  const [createHospitalizacion, { loading: saving }] = useMutation(CREATE_HOSPITALIZACION, {
     refetchQueries: ['GetHospitalizaciones', 'GetExpedientePaciente']
   });
 
   const [successMsg, setSuccessMsg] = useState(false);
+  const [customError, setCustomError] = useState<string | null>(null);
+
+  // Obtener fecha de hoy para bloquear días pasados
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setCustomError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCustomError(null);
+
     try {
-      let fechaIngresoISO = new Date().toISOString();
-      if (formData.fecha_ingreso) {
-        fechaIngresoISO = new Date(formData.fecha_ingreso).toISOString();
+      // MAGIA PARA EL BACKEND: Combinamos los inputs visuales en el formato ISO que espera el backend
+      let fechaIngresoISO = new Date().toISOString(); // Por defecto la hora actual
+      
+      if (formData.fecha && formData.hora) {
+        fechaIngresoISO = new Date(`${formData.fecha}T${formData.hora}:00`).toISOString();
       }
 
       await createHospitalizacion({
         variables: {
           input: {
             paciente_id: parseInt(formData.paciente_id),
-            empleado_id: parseInt(formData.empleado_id), // ENVIAMOS EL DATO AL BACKEND
-            fecha_ingreso: fechaIngresoISO,
+            empleado_id: parseInt(formData.empleado_id), 
+            fecha_ingreso: fechaIngresoISO, // <-- El backend recibe lo mismo de siempre
             motivo: formData.motivo.trim(),
             estado: 'Internado'
           }
@@ -103,13 +120,16 @@ export const NuevoIngresoModal: React.FC<NuevoIngresoModalProps> = ({ isOpen, on
       
       setSuccessMsg(true);
       setTimeout(() => {
-        setFormData({ paciente_id: '', empleado_id: '', fecha_ingreso: '', motivo: '' });
+        setFormData({ paciente_id: '', empleado_id: '', fecha: '', hora: '', motivo: '' });
         setSuccessMsg(false);
         onClose();
       }, 1500);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      // Aplicamos el mismo manejo de errores limpio
+      const mensajeError = err.graphQLErrors?.[0]?.message || err.message || "Error al internar al paciente.";
+      setCustomError(mensajeError);
     }
   };
 
@@ -129,14 +149,22 @@ export const NuevoIngresoModal: React.FC<NuevoIngresoModalProps> = ({ isOpen, on
 
         <div className="p-6 overflow-y-auto">
           <form id="ingresoForm" onSubmit={handleSubmit} className="space-y-6">
-            {saveError && <div className="p-3 bg-rose-50 text-rose-600 rounded-lg text-sm">{saveError.message}</div>}
+            
+            {customError && (
+              <div className="p-4 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl text-sm font-bold flex gap-3 items-start border border-rose-200 dark:border-rose-500/20">
+                <AlertCircle size={20} className="shrink-0 mt-0.5" />
+                <p>{customError}</p>
+              </div>
+            )}
+            
             {successMsg && <div className="p-4 bg-emerald-50 text-emerald-600 font-bold rounded-xl text-center flex items-center justify-center gap-2"><CheckCircle size={20} /> ¡Paciente ingresado con éxito!</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
               <div className="space-y-2 md:col-span-2">
                 <Label className="flex items-center gap-2"><PawPrint size={16} className="text-[#3B82F6]"/> Seleccionar Paciente</Label>
                 <div className="relative">
-                  <select name="paciente_id" value={formData.paciente_id} onChange={handleChange} required disabled={saving || successMsg} className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:ring-2 focus:ring-[#3B82F6]/50 appearance-none">
+                  <select name="paciente_id" value={formData.paciente_id} onChange={handleChange} required disabled={saving || successMsg} className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:ring-2 focus:ring-[#3B82F6]/50 appearance-none outline-none">
                     <option value="">Selecciona un paciente registrado...</option>
                     {data?.pacientes.map((p) => (
                       <option key={p.id_paciente} value={p.id_paciente}>{p.nombre} ({p.especie}) - Dueño: {p.cliente.nombre_completo}</option>
@@ -146,11 +174,11 @@ export const NuevoIngresoModal: React.FC<NuevoIngresoModalProps> = ({ isOpen, on
                 </div>
               </div>
 
-              {/* NUEVO CAMPO: MÉDICO A CARGO */}
-              <div className="space-y-2">
+              {/* MÉDICO A CARGO */}
+              <div className="space-y-2 md:col-span-2">
                 <Label className="flex items-center gap-2"><User size={16} className="text-[#3B82F6]"/> Médico a Cargo</Label>
                 <div className="relative">
-                  <select name="empleado_id" value={formData.empleado_id} onChange={handleChange} required disabled={saving || successMsg} className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:ring-2 focus:ring-[#3B82F6]/50 appearance-none">
+                  <select name="empleado_id" value={formData.empleado_id} onChange={handleChange} required disabled={saving || successMsg} className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:ring-2 focus:ring-[#3B82F6]/50 appearance-none outline-none">
                     <option value="">Selecciona al doctor...</option>
                     {data?.empleados.map((e) => (
                       <option key={e.id_empleado} value={e.id_empleado}>Dr. {e.nombre} ({e.puesto})</option>
@@ -159,18 +187,37 @@ export const NuevoIngresoModal: React.FC<NuevoIngresoModalProps> = ({ isOpen, on
                 </div>
               </div>
 
+              {/* SEPARACIÓN DE FECHA Y HORA EN 2 COLUMNAS */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2"><CalendarIcon size={16}/> Fecha y Hora de Ingreso</Label>
+                <Label className="flex items-center gap-2"><CalendarIcon size={16}/> Fecha de Ingreso</Label>
                 <input 
-                  type="datetime-local" 
-                  name="fecha_ingreso" 
-                  value={formData.fecha_ingreso} 
+                  type="date" 
+                  name="fecha" 
+                  value={formData.fecha} 
                   onChange={handleChange}
+                  onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                  onKeyDown={(e) => e.preventDefault()}
+                  min={getTodayString()}
                   disabled={saving || successMsg}
-                  className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 dark:[color-scheme:dark]" 
+                  className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 cursor-pointer select-none dark:[color-scheme:dark]" 
                 />
-                <p className="text-[10px] text-[#64748B]">Déjalo en blanco para usar la hora actual.</p>
               </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Clock size={16}/> Hora de Ingreso</Label>
+                <input 
+                  type="time" 
+                  name="hora" 
+                  value={formData.hora} 
+                  onChange={handleChange}
+                  onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                  onKeyDown={(e) => e.preventDefault()}
+                  disabled={saving || successMsg}
+                  className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 cursor-pointer select-none dark:[color-scheme:dark]" 
+                />
+              </div>
+              <p className="text-[10px] text-[#64748B] md:col-span-2 -mt-4">Nota: Si dejas la fecha y hora vacías, se registrará el ingreso con la hora actual exacta.</p>
+
             </div>
 
             <div className="space-y-2">

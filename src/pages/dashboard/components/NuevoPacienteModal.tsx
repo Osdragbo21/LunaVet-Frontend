@@ -42,7 +42,7 @@ interface GetClientesResponse {
 interface NuevoPacienteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultClienteId?: number; // NUEVO: Permite pre-seleccionar un cliente
+  defaultClienteId?: number; // Permite pre-seleccionar un cliente
 }
 
 export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, onClose, defaultClienteId }) => {
@@ -58,7 +58,7 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
     alergias: ''
   });
 
-  // NUEVO: Efecto para pre-llenar el cliente si viene desde la tabla de Clientes
+  // Efecto para pre-llenar el cliente si viene desde la tabla de Clientes
   useEffect(() => {
     if (isOpen && defaultClienteId) {
       setFormData(prev => ({ ...prev, cliente_id: defaultClienteId.toString() }));
@@ -73,13 +73,24 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
 
   // 5. Hooks de Apollo
   const { data: clientesData, loading: loadingClientes } = useQuery<GetClientesResponse>(GET_CLIENTES_DROPDOWN, {
-    skip: !isOpen // Solo cargar clientes si el modal está abierto
+    skip: !isOpen 
   });
 
   const [createPaciente, { loading: saving, error: saveError }] = useMutation(CREATE_PACIENTE, {
-    // NUEVO: Recargamos AMBAS tablas para que el globito de la mascota aparezca de inmediato en la vista de clientes
     refetchQueries: ['GetPacientes', 'GetClientesDirectorio'] 
   });
+
+  // --- LÓGICA DE FECHAS ---
+  // Obtener fecha de hoy para bloquear días futuros en el nacimiento
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayString = getTodayString();
 
   // 6. Manejadores de eventos
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -144,7 +155,7 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
                   value={formData.cliente_id}
                   onChange={handleChange}
                   required
-                  disabled={!!defaultClienteId} // Si viene preseleccionado, bloqueamos el select
+                  disabled={!!defaultClienteId} 
                   className="w-full px-4 py-3 bg-[#FFFFFF] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all appearance-none cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <option value="">Selecciona un cliente registrado...</option>
@@ -174,6 +185,7 @@ export const NuevoPacienteModal: React.FC<NuevoPacienteModalProps> = ({ isOpen, 
                   onChange={handleChange}
                   onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
                   onKeyDown={(e) => e.preventDefault()}
+                  max={todayString} /* <--- AQUÍ ESTÁ EL BLOQUEO DE DÍAS FUTUROS */
                   required
                   className="w-full px-4 py-3 pl-11 bg-[#F8FAFC] dark:bg-[#0F172A] border border-black/10 dark:border-white/10 rounded-[12px] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all cursor-pointer select-none dark:[color-scheme:dark]" 
                 />
